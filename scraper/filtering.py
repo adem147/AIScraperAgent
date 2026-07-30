@@ -11,8 +11,11 @@ def fetch_best_api_data(best_result):
     if not request_url:
         return None
 
-    response = requests.get(request_url, timeout=30)
+    response = requests.get(request_url, timeout=100)
     response.raise_for_status()
+
+    print(response.json())
+
     return response.json()
 
 
@@ -65,7 +68,6 @@ def filter_relevant(df):
     """Keep rows that still look relevant after normalization."""
 
     FINAL_COLUMNS = [
-    "id",
     "title",
     "description",
     "organization",

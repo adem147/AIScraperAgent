@@ -17,7 +17,7 @@ ENDPOINT_RESULTS = []
 
 def handle_response(response):
     if response.request.resource_type in ["fetch", "xhr"]:
-        print(f"\n {response.request.method} {response.url}")
+        # print(f"\n {response.request.method} {response.url}")
 
         parsed_data = parse_json_response(response)
 
@@ -33,9 +33,10 @@ def handle_response(response):
                     "similarity_score": usefulness["similarity_score"],
                     "sample_items": sample_items,
                 })
-                print("Embedding similarity score:", usefulness["similarity_score"])
+               # print("Embedding similarity score:", usefulness["similarity_score"])
         else:
-            print("Content-Type:", response.headers.get("content-type"))
+            pass
+           # print("Content-Type:", response.headers.get("content-type"))
 
 
 def get_filtered_df():
@@ -69,7 +70,7 @@ def get_filtered_df():
 
             print("\n===== CLEANED DATAFRAME SAMPLE CREATED =====")
             with open("output.txt", "w", encoding="utf-8") as handle:
-                handle.write(filtered_df.head(10).to_string())
+                handle.write(filtered_df.head(25).to_string())
 
         browser.close()
         return filtered_df

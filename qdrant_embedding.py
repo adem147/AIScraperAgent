@@ -111,3 +111,20 @@ def retrieve_data(collection_name: str = None):
 
     response = client.scroll(collection_name=collection_name)
     return [point for point in response[0]]
+
+
+def retrive_spesific_data(collection_name: str = None):
+    client = CLIENT
+    query = "health"
+
+    query_vector = EMBED_MODEL.encode(query).tolist()
+
+    results = client.query_points(
+        collection_name=collection_name,
+        query=query_vector,
+        limit=10
+    )
+
+    for r in results.points:
+        print(r.payload)   # your stored data
+        print(r.score)     # similarity score
