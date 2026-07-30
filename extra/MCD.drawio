@@ -1,0 +1,79 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="WkEPmk5TYOhW-U2GPBAa">
+    <mxGraphModel dx="1030" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="light-dark(#ffffff, #f7f7f7)" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-1" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="User" vertex="1">
+          <mxGeometry height="120" width="140" x="60" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-2" parent="HyLPsy0KKGJ_If3KrE9I-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="id" vertex="1">
+          <mxGeometry height="30" width="140" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-3" parent="HyLPsy0KKGJ_If3KrE9I-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="name" vertex="1">
+          <mxGeometry height="30" width="140" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-4" parent="HyLPsy0KKGJ_If3KrE9I-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="email" vertex="1">
+          <mxGeometry height="30" width="140" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-5" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Opportunities" vertex="1">
+          <mxGeometry height="210" width="140" x="710" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-6" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="id" vertex="1">
+          <mxGeometry height="30" width="140" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-7" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="source_id" vertex="1">
+          <mxGeometry height="30" width="140" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-8" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="title" vertex="1">
+          <mxGeometry height="30" width="140" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-21" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="document_url" vertex="1">
+          <mxGeometry height="30" width="140" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-22" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="submission_deadline" vertex="1">
+          <mxGeometry height="30" width="140" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-23" parent="HyLPsy0KKGJ_If3KrE9I-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="sector" vertex="1">
+          <mxGeometry height="30" width="140" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-28" edge="1" parent="1" source="HyLPsy0KKGJ_If3KrE9I-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="HyLPsy0KKGJ_If3KrE9I-25" value="0,N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-9" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Sources" vertex="1">
+          <mxGeometry height="180" width="140" x="390" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-10" parent="HyLPsy0KKGJ_If3KrE9I-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="id" vertex="1">
+          <mxGeometry height="30" width="140" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-11" parent="HyLPsy0KKGJ_If3KrE9I-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="organization_name" vertex="1">
+          <mxGeometry height="30" width="140" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-12" parent="HyLPsy0KKGJ_If3KrE9I-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="url" vertex="1">
+          <mxGeometry height="30" width="140" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-19" parent="HyLPsy0KKGJ_If3KrE9I-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="type" vertex="1">
+          <mxGeometry height="30" width="140" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-20" parent="HyLPsy0KKGJ_If3KrE9I-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="scraper_type" vertex="1">
+          <mxGeometry height="30" width="140" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-26" edge="1" parent="1" source="HyLPsy0KKGJ_If3KrE9I-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="HyLPsy0KKGJ_If3KrE9I-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-27" edge="1" parent="1" source="HyLPsy0KKGJ_If3KrE9I-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="HyLPsy0KKGJ_If3KrE9I-1" value="0,N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-24" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="ajouter" vertex="1">
+          <mxGeometry height="80" width="120" x="230" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-29" edge="1" parent="1" source="HyLPsy0KKGJ_If3KrE9I-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="HyLPsy0KKGJ_If3KrE9I-7" value="1,1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HyLPsy0KKGJ_If3KrE9I-25" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="contient" vertex="1">
+          <mxGeometry height="80" width="120" x="560" y="210" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

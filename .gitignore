@@ -1,0 +1,101 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Logs & temp files
+# =========================
+*.log
+*.tmp
+*.swp
+*.bak
+
+# =========================
+# Text files (scraped content, chunks, logs)
+# =========================
+
+
+# =========================
+# SQLite databases
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Jupyter Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Data files
+# =========================
+data/
+datasets/
+*.csv
+*.json
+*.jsonl
+*.parquet
+
+# Keep sample data if needed
+!data/sample/
+
+# =========================
+# Model files
+# =========================
+models/
+checkpoints/
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# =========================
+# Vector DB / embeddings
+# =========================
+qdrant_storage/
+chroma/
+faiss_index/
+
+# =========================
+# Build / distribution
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Misc
+# =========================
+coverage/
+.cache/

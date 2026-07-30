@@ -1,0 +1,8 @@
+phase 1 :
+Crawl portals
+✅ Store all candidate URLs + context in SQLite
+✅ Use keyword scoring only as a priority queue
+✅ Download PDFs progressively
+✅ Add NLP classifier after you have a corpus
+
+for classification (useful pdf file) using the context of the link : Key Words , Logistic Regression ,LLM (embedding) 

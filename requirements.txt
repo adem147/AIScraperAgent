@@ -1,0 +1,9 @@
+requests
+beautifulsoup4
+lxml
+python-dotenv
+playwright
+sentence-transformers
+scikit-learn
+pandas
+qdrant-client

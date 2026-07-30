@@ -1,0 +1,2 @@
+BeautifulSoup : fast uses requests , better for static html pages
+Playwright : slower , simulate a real browser , for React/Angular sites
