@@ -14,8 +14,6 @@ def fetch_best_api_data(best_result):
     response = requests.get(request_url, timeout=100)
     response.raise_for_status()
 
-    print(response.json())
-
     return response.json()
 
 
