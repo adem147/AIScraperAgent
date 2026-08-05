@@ -7,3 +7,6 @@ sentence-transformers
 scikit-learn
 pandas
 qdrant-client
+fastapi
+uvicorn
+sqlalchemy

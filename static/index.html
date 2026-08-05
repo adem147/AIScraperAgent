@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIScraperAgent | Automated AI Procurement Intelligence & Vector Search</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="logo-area">
+      <div class="logo-icon">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div class="logo-text">
+        <span class="brand">AIScraperAgent</span>
+        <span class="tag">Phase 1 Live Demo</span>
+      </div>
+    </div>
+    
+    <nav class="nav-links">
+      <a href="#dashboard" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+      <a href="#search-section"><i class="fa-solid fa-magnifying-glass"></i> Semantic Search</a>
+      <a href="#scraper-section"><i class="fa-solid fa-satellite-dish"></i> Live Scraper</a>
+      <a href="#phase2-section"><i class="fa-solid fa-rocket"></i> Phase 2 Roadmap</a>
+    </nav>
+    
+    <div class="header-status">
+      <span class="status-indicator online"></span>
+      <span class="status-text">Qdrant Vector DB Connected</span>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Hero Banner -->
+    <section class="hero-card">
+      <div class="hero-content">
+        <h1>AI-Driven Automated Monitoring & Vector Search</h1>
+        <p>Automated discovery, dynamic network interception, AI payload ranking, and 384-dimensional vector indexing of public procurement opportunities (AMI / AO).</p>
+        <div class="hero-actions">
+          <button id="btn-trigger-scrape" class="btn btn-primary btn-glow">
+            <i class="fa-solid fa-play"></i> Run Live Scraper Pipeline
+          </button>
+          <a href="#search-section" class="btn btn-secondary">
+            <i class="fa-solid fa-bolt"></i> Test Semantic Query
+          </a>
+        </div>
+      </div>
+      <div class="hero-badge-box">
+        <div class="mini-badge">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Playwright XHR Interception</span>
+        </div>
+        <div class="mini-badge">
+          <i class="fa-solid fa-brain"></i>
+          <span>SentenceTransformer AI</span>
+        </div>
+        <div class="mini-badge">
+          <i class="fa-solid fa-database"></i>
+          <span>Qdrant 384-dim Index</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metrics Cards Banner -->
+    <section id="dashboard" class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon blue"><i class="fa-solid fa-file-contract"></i></div>
+        <div class="metric-data">
+          <h3 id="stat-total-count">0</h3>
+          <p>Indexed Opportunities</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon purple"><i class="fa-solid fa-cube"></i></div>
+        <div class="metric-data">
+          <h3 id="stat-vector-dim">384</h3>
+          <p>Vector Dimensions (Cosine)</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon green"><i class="fa-solid fa-network-wired"></i></div>
+        <div class="metric-data">
+          <h3 id="stat-model-name">all-MiniLM-L6-v2</h3>
+          <p>HuggingFace Embedder</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon amber"><i class="fa-solid fa-bullseye"></i></div>
+        <div class="metric-data">
+          <h3 id="stat-top-score">0.942</h3>
+          <p>Top Similarity Score</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Scraper Control & Terminal Section -->
+    <section id="scraper-section" class="section-block">
+      <div class="section-header">
+        <div>
+          <h2><i class="fa-solid fa-terminal"></i> Live Scraper Pipeline Control</h2>
+          <p>Launches Playwright headless browser, intercepts background JSON API payloads, and computes similarity scores live.</p>
+        </div>
+        <button id="btn-run-scraper-2" class="btn btn-outline">
+          <i class="fa-solid fa-arrows-rotate"></i> Trigger Scrape
+        </button>
+      </div>
+
+      <div class="terminal-box">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="terminal-title">bash — AIScraperAgent Interceptor Engine</span>
+        </div>
+        <div id="terminal-output" class="terminal-body">
+          <div class="line"><span class="prompt">$</span> python main.py --mode=live-intercept</div>
+          <div class="line sys">[SYSTEM] Base SQLite metadata initialized successfully.</div>
+          <div class="line sys">[QDRANT] Connected to Qdrant Vector Engine (Location: in-memory).</div>
+          <div class="line sys">[PLAYWRIGHT] Listening to network responses on https://projects.worldbank.org/en/projects-operations/opportunities...</div>
+          <div class="line success">[AI-SCORER] Endpoint evaluation active. Candidate response payload scored via SentenceTransformer (all-MiniLM-L6-v2).</div>
+          <div class="line highlight">[READY] Dashboard active. Click 'Run Live Scraper Pipeline' to trigger a live run.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Semantic Search Section -->
+    <section id="search-section" class="section-block">
+      <div class="section-header">
+        <div>
+          <h2><i class="fa-solid fa-wand-magic-sparkles"></i> AI Semantic Vector Search</h2>
+          <p>Type natural language queries to retrieve matching procurement notices based on vector similarity rather than exact keywords.</p>
+        </div>
+      </div>
+
+      <div class="search-box-card">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" placeholder="e.g. cybersecurity threat detection, cloud infrastructure, health data..." value="cybersecurity">
+          <button id="btn-search" class="btn btn-primary">
+            <i class="fa-solid fa-sparkles"></i> Search Vectors
+          </button>
+        </div>
+
+        <div class="search-pills">
+          <span class="pill-label">Suggested Queries:</span>
+          <button class="pill" data-query="cybersecurity threat detection"><i class="fa-solid fa-shield"></i> Cybersecurity</button>
+          <button class="pill" data-query="software engineering machine learning"><i class="fa-solid fa-code"></i> AI & Data Science</button>
+          <button class="pill" data-query="cloud computing devops digital transformation"><i class="fa-solid fa-cloud"></i> Cloud Infrastructure</button>
+          <button class="pill" data-query="health information system telemedicine"><i class="fa-solid fa-heart-pulse"></i> Digital Health</button>
+        </div>
+      </div>
+
+      <!-- Opportunities Grid -->
+      <div class="results-meta">
+        <span id="results-count-text">Displaying 4 opportunities</span>
+        <span class="sort-tag"><i class="fa-solid fa-arrow-down-short-wide"></i> Sorted by Cosine Similarity</span>
+      </div>
+
+      <div id="opportunities-grid" class="cards-grid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- Phase 2 Roadmap Section -->
+    <section id="phase2-section" class="section-block roadmap-block">
+      <div class="section-header center">
+        <h2><i class="fa-solid fa-map-location-dot"></i> Phase 2 Architecture Roadmap</h2>
+        <p>Key extensions and upcoming developments for the automated intelligence system.</p>
+      </div>
+
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <div class="card-step">01</div>
+          <div class="card-icon"><i class="fa-solid fa-file-pdf"></i></div>
+          <h3>Progressive PDF Parser</h3>
+          <p>Automated crawler to download and parse attached tender PDFs (terms of reference, tender specifications) progressively.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="card-step">02</div>
+          <div class="card-icon"><i class="fa-solid fa-brain-circuit"></i></div>
+          <h3>NLP Key-Field Extractor</h3>
+          <p>Fine-tuned Named Entity Recognition (NER) & LLM pipeline to extract key dates, estimated budget, eligibility criteria, and required documents.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="card-step">03</div>
+          <div class="card-icon"><i class="fa-solid fa-language"></i></div>
+          <h3>Multilingual Processing</h3>
+          <p>Cross-lingual vector embeddings and automated translation supporting French, English, and Arabic (FR / EN / AR).</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="card-step">04</div>
+          <div class="card-icon"><i class="fa-solid fa-bell"></i></div>
+          <h3>Automated Alert Engine</h3>
+          <p>FastAPI subscription webhooks & email notifications whenever a high-scoring tender (>0.85 similarity) matches registered CERT profiles.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>AIScraperAgent — Phase 1 Review & Live Demonstration | Automated Monitoring System</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
