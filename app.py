@@ -2,11 +2,16 @@ import os
 os.environ["USE_TF"] = "0"
 os.environ["USE_TORCH"] = "1"
 
+import smtplib
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Optional
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, EmailStr
 import pandas as pd
 
 from database.db import engine, Base
@@ -236,6 +241,75 @@ def trigger_scrape():
         )
 
 
+class SendEmailRequest(BaseModel):
+    to_email: str
+    subject: str
+    body: str
+    is_html: bool = False
+
+
+@app.post("/api/send-email")
+def send_email(payload: SendEmailRequest):
+    """
+    Send an email via SMTP (e.g., Gmail SMTP using an App Password).
+    Environment variables:
+      - SMTP_SERVER (default: smtp.gmail.com)
+      - SMTP_PORT (default: 587)
+      - SMTP_USER
+      - SMTP_PASSWORD (Gmail App Password)
+      - SMTP_SENDER_EMAIL (optional, defaults to SMTP_USER)
+    """
+    load_dotenv()
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com").strip()
+    try:
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    except ValueError:
+        smtp_port = 587
+
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    sender_email = os.getenv("SMTP_SENDER_EMAIL", "").strip() or smtp_user
+
+    if not smtp_user or not smtp_password or smtp_password == "your_gmail_app_password_here":
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "message": (
+                    "SMTP credentials are missing or unconfigured. "
+                    "Please set SMTP_USER and SMTP_PASSWORD (Gmail App Password) in your .env file."
+                ),
+            },
+        )
+
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = payload.subject
+        msg["From"] = sender_email
+        msg["To"] = payload.to_email
+
+        if payload.is_html:
+            msg.add_alternative(payload.body, subtype="html")
+        else:
+            msg.set_content(payload.body)
+
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=15) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+
+        return {
+            "status": "success",
+            "message": f"Email successfully sent to {payload.to_email}",
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": f"Failed to send email: {str(e)}"},
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+
