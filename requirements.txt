@@ -7,3 +7,4 @@ sentence-transformers
 scikit-learn
 pandas
 qdrant-client
+google-genai

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, ForeignKey, Integer, String, Date
 from .db import Base
 
 
@@ -23,12 +23,17 @@ class Opportunity(Base):
 
     id = Column(Integer, primary_key=True)
 
-    source_id = Column(Integer)
+    source_id = Column(
+        Integer,
+        ForeignKey("sources.id")
+    )
 
     title = Column(String)
 
+    description = Column(String)
+
     document_url = Column(String)
 
-    submission_deadline = Column(Date)
+    submission_deadline = Column(String)
 
     sector = Column(String)

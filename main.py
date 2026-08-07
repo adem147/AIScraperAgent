@@ -1,6 +1,7 @@
 import pandas as pd
 
-from database.db import engine, Base
+from database.db import engine, Base, SessionLocal
+from database.models import Opportunity
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,retrive_spesific_data
 from sc2 import  get_filtered_df
@@ -20,6 +21,8 @@ def create_database():
 def main():
     create_database()
 
+    session = SessionLocal()
+
     client = get_qdrant_client()
     print(f"Qdrant client initialized: {client}" if client else "Qdrant client not initialized.")
 
@@ -28,8 +31,22 @@ def main():
     )
 
     filtered_df =  get_filtered_df()
+    filtered_data = filtered_df.to_dict(orient="records")
 
-    embed_and_store_ami_descriptions(test_df)
+    for item in filtered_data:
+        opp = Opportunity(
+        source_id=1,
+        title=item["title"],
+        description=item["description"],
+        document_url=" ",
+        submission_deadline=item["submission_deadline"],
+        sector=" ",
+        )
+
+        session.add(opp)
+    session.commit()
+
+    embed_and_store_ami_descriptions(filtered_df)
 
     #print(retrieve_data(get_collection_name()))
     retrive_spesific_data(get_collection_name())
