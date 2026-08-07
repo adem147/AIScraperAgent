@@ -1,8 +1,10 @@
 import pandas as pd
 from playwright.sync_api import sync_playwright
+from requests import session
 
+from database.models import Opportunity, BestApiEndpoint
 from database.models import Opportunity
-from database.models import Opportunity
+from database.storage import get_best_api_for_source, save_best_api_for_source
 from scraper.json_parser import create_sample_text, get_middle_response_items, parse_json_response
 from scraper.embedding import score_response_usefulness
 from scraper.filtering import (
@@ -40,31 +42,53 @@ def handle_response(response):
             pass
            # print("Content-Type:", response.headers.get("content-type"))
 
+source_id = 1  # Replace with the actual source ID for the World Bank
 
 def get_filtered_df():
     """Run the scraper flow and return the filtered DataFrame."""
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
-        page.on("response", handle_response)
-        page.goto(url, wait_until="networkidle")
-        page.wait_for_timeout(10000)
+        existing_endpoint = get_best_api_for_source(source_id)
 
-        ranked_results = sorted(
-            ENDPOINT_RESULTS,
-            key=lambda item: item["similarity_score"],
-            reverse=True,
-        )
+        best_api = None
 
-        print("\n===== BEST API ENDPOINTS BY SIMILARITY =====")
-        for rank, result in enumerate(ranked_results, start=1):
-            print(f"\n{rank}. {result['method']} {result['url']}")
-            print("Similarity score:", result["similarity_score"])
+        if existing_endpoint:
+            print("Best API already exists, skipping discovery")
+            best_api = existing_endpoint
+        else:
+            print("Searching for best API...")
 
-        best_result = ranked_results[0] if ranked_results else None
+            page = browser.new_page()
+            page.on("response", handle_response)
+            page.goto(url, wait_until="networkidle")
+
+            ranked_results = sorted(
+                ENDPOINT_RESULTS,
+                key=lambda item: item["similarity_score"],
+                reverse=True
+            )
+
+            best_api = ranked_results[0]
+
+            save_best_api_for_source(
+                source_id,
+                best_api["url"],
+                best_api["method"],
+                best_api["similarity_score"],
+            )
+
+
+       # print("\n===== BEST API ENDPOINTS BY SIMILARITY =====")
+       # for rank, result in enumerate(ranked_results, start=1):
+        #    print(f"\n{rank}. {result['method']} {result['url']}")
+           # print("Similarity score:", result["similarity_score"])
+
+       # best_api  = ranked_results[0] if ranked_results else None
+        best_api = best_api.__dict__
         filtered_df = pd.DataFrame()
 
-        full_payload = fetch_best_api_data(best_result)
+        full_payload = fetch_best_api_data(best_api["endpoint_url"])
         if full_payload is not None and "procnotices" in full_payload:
             cleaned_df = clean_api_dataframe(full_payload["procnotices"])
             normalized_df = normalize_world_bank(cleaned_df)
@@ -81,6 +105,5 @@ def get_filtered_df():
 
 if __name__ == "__main__":
     result = get_filtered_df()
-    print(result.head())
 
 

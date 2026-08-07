@@ -1,5 +1,20 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Date
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, Date
 from .db import Base
+
+
+class BestApiEndpoint(Base):
+
+    __tablename__ = "best_api_endpoints"
+
+    id = Column(Integer, primary_key=True)
+
+    source_id = Column(Integer, ForeignKey("sources.id"))
+
+    endpoint_url = Column(String)
+
+    method = Column(String)
+
+    similarity_score = Column(Float)
 
 
 class Source(Base):

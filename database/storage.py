@@ -3,30 +3,30 @@ from database.db import SessionLocal
 from database.models import BestApiEndpoint
 
 
-def save_best_api_for_source(source_url, endpoint_url, method="GET", similarity_score=None):
-    """Persist the best API endpoint for a website, only once per source URL."""
+def get_best_api_for_source(source_id):
+    """Retrieve the best API endpoint for a given source ID."""
     session: Session = SessionLocal()
     try:
-        existing = (
+        return (
             session.query(BestApiEndpoint)
-            .filter(BestApiEndpoint.source_url == source_url)
+            .filter(BestApiEndpoint.source_id == source_id)
             .first()
         )
+    finally:
+        session.close()
 
-        if existing:
-            existing.endpoint_url = endpoint_url
-            existing.method = method
-            existing.similarity_score = str(similarity_score)
-        else:
-            session.add(
-                BestApiEndpoint(
-                    source_url=source_url,
-                    endpoint_url=endpoint_url,
-                    method=method,
-                    similarity_score=str(similarity_score),
-                )
+def save_best_api_for_source(source_id, endpoint_url, method="GET", similarity_score=None):
+    """Persist the best API endpoint for a website, only once per source ID."""
+    session: Session = SessionLocal()
+    try:
+        session.add(
+            BestApiEndpoint(    
+                source_id=source_id,
+                endpoint_url=endpoint_url,
+                method=method,
+                similarity_score=similarity_score,
             )
-
+        )
         session.commit()
         return True
     finally:

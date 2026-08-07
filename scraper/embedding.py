@@ -7,7 +7,7 @@ MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
 def build_usefulness_query(sample_text):
     """Create a semantic query from a response sample to evaluate endpoint usefulness."""
-    sample_text = sample_text[:800]
+    sample_text = sample_text[:1000]
     return (
         "Evaluate whether this API endpoint is useful for CERT procurement intelligence. "
         "Look for public procurement opportunities, tenders, calls for proposals, expressions of interest, "

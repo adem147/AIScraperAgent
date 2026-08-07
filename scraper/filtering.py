@@ -2,16 +2,12 @@ import pandas as pd
 import requests
 
 
-def fetch_best_api_data(best_result):
+def fetch_best_api_data(best_api_url):
     """Fetch the full payload from the top-ranked API endpoint."""
-    if not best_result:
+    if not best_api_url:
         return None
 
-    request_url = best_result.get("url")
-    if not request_url:
-        return None
-
-    response = requests.get(request_url, timeout=100)
+    response = requests.get(best_api_url, timeout=30)
     response.raise_for_status()
 
     return response.json()
