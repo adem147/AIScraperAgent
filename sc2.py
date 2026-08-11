@@ -85,7 +85,7 @@ def get_filtered_df():
            # print("Similarity score:", result["similarity_score"])
 
        # best_api  = ranked_results[0] if ranked_results else None
-        best_api = best_api.__dict__
+        best_api = best_api
         filtered_df = pd.DataFrame()
 
         full_payload = fetch_best_api_data(best_api["endpoint_url"])
