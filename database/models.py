@@ -23,6 +23,8 @@ class Source(Base):
 
     id = Column(Integer, primary_key=True)
 
+    hash_id = Column(String, unique=True)
+
     organization_name = Column(String)
 
     url = Column(String)
@@ -37,6 +39,8 @@ class Opportunity(Base):
     __tablename__ = "opportunities"
 
     id = Column(Integer, primary_key=True)
+
+    hash_id = Column(String, unique=True)
 
     source_id = Column(
         Integer,

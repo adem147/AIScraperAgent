@@ -1,7 +1,10 @@
+from sqlite3 import IntegrityError
+
 import pandas as pd
 
 from database.db import engine, Base, SessionLocal
 from database.models import Opportunity
+from scraper.hashing import generate_hash
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,retrive_spesific_data
 from sc2 import  get_filtered_df
@@ -34,17 +37,22 @@ def main():
     filtered_data = filtered_df.to_dict(orient="records")
 
     for item in filtered_data:
-        opp = Opportunity(
-        source_id=1,
-        title=item["title"],
-        description=item["description"],
-        document_url=" ",
-        submission_deadline=item["submission_deadline"],
-        sector=" ",
-        )
 
-        session.add(opp)
-    session.commit()
+        try :
+            opp = Opportunity(
+            source_id=1,
+            title=item["title"],
+            description=item["description"],
+            document_url=" ",
+            submission_deadline=item["submission_deadline"],
+            sector=" ",
+            hash_id=generate_hash(item["title"], item["submission_deadline"], item["description"])
+            )
+            session.add(opp)
+            session.commit()
+        except Exception as e:
+            session.rollback()
+
 
     embed_and_store_ami_descriptions(filtered_df)
 
