@@ -36,6 +36,8 @@ def main():
     filtered_df =  get_filtered_df()
     filtered_data = filtered_df.to_dict(orient="records")
 
+    opportunities = []
+
     for item in filtered_data:
 
         try :
@@ -48,13 +50,21 @@ def main():
             sector=" ",
             hash_id=generate_hash(item["title"], item["submission_deadline"], item["description"])
             )
+
             session.add(opp)
+
             session.commit()
+            opportunities.append(opp)
+
+        except IntegrityError:
+            session.rollback()
+           # print("Duplicate opportunity, skipping.")
+
         except Exception as e:
             session.rollback()
+           # print(f"Error: {e}")
 
-
-    embed_and_store_ami_descriptions(filtered_df)
+    embed_and_store_ami_descriptions(opportunities)
 
     #print(retrieve_data(get_collection_name()))
     retrive_spesific_data(get_collection_name())

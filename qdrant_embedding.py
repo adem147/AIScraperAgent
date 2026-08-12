@@ -1,14 +1,11 @@
 import hashlib
 
 import pandas as pd
+from database.models import Opportunity
 from scraper.embedding import MODEL
 from qdrant_connection import get_collection_name, get_qdrant_client
+from qdrant_client import models
 
-
-try:
-    from qdrant_client import models
-except ImportError:  # pragma: no cover
-    models = None
 
 
 EMBED_MODEL = MODEL
@@ -17,10 +14,10 @@ CLIENT = get_qdrant_client()
 
 def ensure_collection(collection_name: str = None):
     if models is None:
-        print("❌ models not available")
+        print("models not available !")
         return False
 
-    collection_name = collection_name or get_collection_name()
+    collection_name = get_collection_name()
     client = CLIENT
 
     if client is None:
@@ -51,53 +48,43 @@ def ensure_collection(collection_name: str = None):
             return False
 
 
-def embed_and_store_ami_descriptions(df: pd.DataFrame, collection_name: str = None):
-    """Embed AMI descriptions and store them in Qdrant for a simple local test."""
-    if df is None or df.empty:
-        return []
-
-    if models is None:
-        return []
-
-    if "description" not in df.columns:
-        return []
-
-    rows = df[df["description"].notna() & df["description"].astype(str).str.strip().ne("")].copy()
-    if rows.empty:
-        return []
-
-    rows["description_text"] = rows["description"].astype(str)
-    collection_name = collection_name or get_collection_name()
+def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
+   
+    collection_name = get_collection_name()
 
     client = CLIENT
     if client is None:
-        return []
-
+        return False
+    
     if not ensure_collection(collection_name):
-        return []
+        return False
 
     points = []
-    for index, row in rows.iterrows():
-        print(f"Embedding and storing description for row {index}: {row['description_text'][:30]}...")
-        description_text = row["title"] + " " + row["description_text"]
-        embedding = EMBED_MODEL.encode(
-            description_text,
-            normalize_embeddings=True
+    for el in opportunities:
+        try : 
+            print(f"Embedding and storing description for opportunity: {el.title[:30]}...")
+            embedding_text = el.title + " " + el.description
+            embedding = EMBED_MODEL.encode(
+                embedding_text,
+                normalize_embeddings=True
             ).tolist()
-        points.append(
-            models.PointStruct(
-                id= hashlib.md5(description_text.encode()).hexdigest(),
-                vector=embedding,
-                payload={
-                    "id": row.get("id", ""),
-                    "title": row.get("title", ""),
-                    "description": description_text,
-                },
+            points.append(
+                models.PointStruct(
+                    id=el.id,
+                    vector=embedding,
+                    payload={
+                        "hash_id": el.hash_id,
+                        "title": el.title,
+                        "description": embedding_text,
+                    },
+                )
             )
-        )
+        except Exception as e:
+            print(f"Failed to embed and store description for opportunity: {el.title[:30]}... ({e})")
+            continue
 
     client.upsert(collection_name=collection_name, points=points)
-    return [point.payload for point in points]
+    return True
 
 
 def retrieve_data(collection_name: str = None):
@@ -134,9 +121,8 @@ def retrive_spesific_data(collection_name: str = None):
     results = client.query_points(
         collection_name=collection_name,
         query=query_vector,
-        limit=10
     )
 
-    for r in results.points:
+    for r in results.points[:10]:
         print(r.payload)   # your stored data
         print(f"{r.score:.2f}")     # similarity score
