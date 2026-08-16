@@ -1,5 +1,8 @@
+import json
+
 import pandas as pd
 from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError
 from requests import session
 
 from database.models import Opportunity, BestApiEndpoint,Source
@@ -12,11 +15,22 @@ from scraper.filtering import (
     fetch_best_api_data,
     filter_relevant,
     normalize_world_bank,
+    process_payload
 )
 
 
 #url = "https://projects.worldbank.org/en/projects-operations/opportunities"
 ENDPOINT_RESULTS = []
+# schema_registry.py
+
+SCHEMA_REGISTRY = {
+    "worldbank": {
+        "data_path": ["data", "items"],
+    },
+    "tuneps": {
+        "data_path": ["payload", "data"],  
+    }
+}
 
 def handle_response(response):
     if response.request.resource_type in ["fetch", "xhr"]:
@@ -24,9 +38,12 @@ def handle_response(response):
 
         parsed_data = parse_json_response(response)
 
+
         if parsed_data is not None:
             sample_items = get_middle_response_items(parsed_data, limit=5)
+           # print(f"Sample items for embedding: {sample_items}")  # Print the sample items for debugging
             sample_text = create_sample_text(sample_items)
+            print("Sample text for embedding:", sample_text,"source:",response.url)  # Print the first 200 characters of the sample text for debugging
             usefulness = score_response_usefulness(sample_text)
 
             if usefulness:
@@ -49,7 +66,7 @@ def get_filtered_df(source : Source):
 
     """Run the scraper flow and return the filtered DataFrame."""
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         existing_endpoint = get_best_api_for_source(source_id)
 
@@ -61,9 +78,14 @@ def get_filtered_df(source : Source):
         else:
             print("Searching for best API...")
 
-            page = browser.new_page()
-            page.on("response", handle_response)
-            page.goto(url, wait_until="networkidle")
+            try:
+                page = browser.new_page()
+                page.on("response", handle_response)
+                page.goto(url, wait_until="networkidle",timeout=50000)  # Wait until network is idle or timeout after 50 seconds
+            except TimeoutError as e:
+                print(f"Timeout error occurred while waiting for API responses: {e}")
+            except Exception as e:
+                print(f"Unexpected error occurred while waiting for API responses: {e}")
 
             ranked_results = sorted(
                 ENDPOINT_RESULTS,
@@ -84,11 +106,18 @@ def get_filtered_df(source : Source):
                 
         filtered_df = pd.DataFrame()
 
+      
         full_payload = fetch_best_api_data(best_api.endpoint_url)
-        if full_payload is not None and "procnotices" in full_payload:
-            cleaned_df = clean_api_dataframe(full_payload["procnotices"])
+       
+        processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
+       
+
+        if processed_payload is not None:
+
+            cleaned_df = clean_api_dataframe(processed_payload)
             normalized_df = normalize_world_bank(cleaned_df)
             filtered_df = filter_relevant(normalized_df)
+
 
 
             print("\n===== CLEANED DATAFRAME SAMPLE CREATED =====")

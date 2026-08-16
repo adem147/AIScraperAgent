@@ -7,7 +7,39 @@ def fetch_best_api_data(best_api_url):
     if not best_api_url:
         return None
 
-    response = requests.get(best_api_url, timeout=30)
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Origin": "https://www.tuneps.tn",
+        "Referer": "https://www.tuneps.tn/portail/offres"
+    }
+
+    payload = {
+        "listSort": [],
+        "dataSearch": [
+            {
+                "key": "publicYn",
+                "value": "Y",
+                "specificSearch": "="
+            }
+        ],
+        "listCol": [],
+        "pagination": {
+            "offSet": 0,
+            "limit": 5
+        },
+        "sort": {
+            "nameCol": "publicDt",
+            "direction": "desc nulls last"
+        }
+    }
+
+    response = requests.post(
+    best_api_url,
+    headers=headers,
+    json=payload,
+    verify=False
+    )
     response.raise_for_status()
 
     return response.json()
@@ -56,6 +88,20 @@ def normalize_world_bank(df):
     normalized_df = normalized_df.rename(columns=rename_map)
 
     return normalized_df
+
+
+def process_payload(full_payload,path):
+    """Extract the relevant data block from the full payload based on the schema path."""
+    if path is None or not isinstance(path, list):
+        return None
+
+    for key in path:
+        if isinstance(full_payload, dict):
+            full_payload = full_payload.get(key)
+        else:
+            return None
+
+    return full_payload
 
 
 def filter_relevant(df):
