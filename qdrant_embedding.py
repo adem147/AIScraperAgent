@@ -117,6 +117,18 @@ def retrive_spesific_data(collection_name: str = None):
     query,
     normalize_embeddings=True
     ).tolist()
+    query = (
+    "Find procurement opportunities relevant to an IT engineering company. "
+    "The opportunity should involve artificial intelligence, machine learning, "
+    "software development, cybersecurity, cloud computing, data science, "
+    "automation, digital platforms, information systems, or technology consulting. "
+    "Include tenders, calls for proposals, expressions of interest, and contracts "
+    "where technical skills in programming, AI, cybersecurity, or IT infrastructure are required."
+    )
+    query_vector = EMBED_MODEL.encode(
+    query,
+    normalize_embeddings=True
+    ).tolist()
 
     results = client.query_points(
         collection_name=collection_name,
@@ -125,4 +137,5 @@ def retrive_spesific_data(collection_name: str = None):
 
     for r in results.points[:10]:
         print(r.payload)   # your stored data
+        print(f"{r.score:.2f}")     # similarity score
         print(f"{r.score:.2f}")     # similarity score

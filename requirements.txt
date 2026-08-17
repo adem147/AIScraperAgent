@@ -7,4 +7,9 @@ sentence-transformers
 scikit-learn
 pandas
 qdrant-client
-google-genai
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pypdf
+

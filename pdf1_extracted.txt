@@ -1,0 +1,46 @@
+--- PAGE 1 ---
+Revue de la phase 1 : 
+Agent IA de Veille Automatisée des AMI/AO 
+1. Introduction de la première phase 
+La première phase du projet consiste à mettre en place un système de veille automatisée destiné à collecter des opportunités 
+pertinentes pour le CERT à partir de sources variées (ministères, organisations internationales, opérateurs télécom et régulateurs).  
+Cette étape inclut la cartographie des portails sources, l’analyse de leur structure et la définition d’une stratégie de collecte et 
+exploitation adaptée. 
+2. Étude et choix des outils 
+Afin d’assurer une collecte efficace, plusieurs outils ont été étudiés et sélectionnés.  
+Les outils : 
+• Python pour sa richesse en bibliothèques dédiées au scraping. 
+• La Bibliothèque BeautifulSoup permettent l’extraction de données HTML statiques. 
+• La Bibliothèque Playwright est utilisé pour les contenus dynamiques (React/Angular).  
+• La bibliothèque Feedparser est utilisée pour la gestion des flux RSS et l’extraction des données. 
+• SQLite pour la base de données et le stockage des données collectées. 
+• FastAPI pour l’exploitation des donnés collectéées. 
+3. Conception 
+3.1 MCD :  
+Une conception préliminaire du modèle conceptuel de données (MCD) permettant de représenter les principales entités du 
+système ainsi que leurs relations. 
+ 
+ 
+4. Pipeline d’extraction et d’exploitation 
+Le système repose sur un pipeline structuré en étapes : 
+• Collecte des données depuis les différentes sources (scrapers/monitors), 
+• Nettoyage et transformation des données. 
+• Stockage en base de données. 
+• Exploitation des données. 
+
+
+--- PAGE 2 ---
+ 
+ 
+5. Conclusion  
+Cette première phase a permis de définir les bases du système de veille automatisée du CERT à travers l’identification des 
+sources prioritaires, l’étude des différentes structures de données et le choix des outils adaptés. La mise en place du pipeline 
+d’extraction et d’exploitation. 
+La phase suivante consistera à constituer un corpus d’AMI/AO collectés (PDF/HTML) avec annotation des champs clés, puis à 
+développer un module d’extraction basé sur des techniques de NLP permettant d’identifier automatiquement les informations 
+importantes (objet, organisme, dates, budget, critères, lots, documents requis). Elle inclura également la gestion du traitement 
+multilingue (FR/EN/AR), la validation des performances sur le corpus annoté, ainsi que l’extension du système de collecte aux 
+sources restantes. 
+ 
+
+

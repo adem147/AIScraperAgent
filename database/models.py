@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, ForeignKey, Integer, String, Date
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Float, Boolean, Text, JSON
 from .db import Base
 
 
@@ -18,7 +18,6 @@ class BestApiEndpoint(Base):
 
 
 class Source(Base):
-
     __tablename__ = "sources"
 
     id = Column(Integer, primary_key=True)
@@ -35,7 +34,6 @@ class Source(Base):
 
 
 class Opportunity(Base):
-
     __tablename__ = "opportunities"
 
     id = Column(Integer, primary_key=True)

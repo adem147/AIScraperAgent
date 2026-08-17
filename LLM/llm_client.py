@@ -1,12 +1,23 @@
-import ollama
+import os
+from dotenv import load_dotenv
+from google import genai
 
-model_name = "gemma3:4b"
+load_dotenv()
 
-response = ollama.chat(
-    model=model_name,
-    messages=[
-        {"role": "user", "content": "hi"}
-    ]
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
 )
 
-print(response['message']['content'])
+
+for model in client.models.list():
+    print(model.name)
+
+def ask_llm(prompt):
+
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt
+    )
+
+    return response.text
+
