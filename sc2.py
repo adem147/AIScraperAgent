@@ -117,6 +117,7 @@ def get_filtered_df(source : Source):
             cleaned_df = clean_api_dataframe(processed_payload)
             normalized_df = normalize_world_bank(cleaned_df)
             filtered_df = filter_relevant(normalized_df)
+            print(filtered_df)
 
 
 
