@@ -211,31 +211,83 @@ def search_opportunities(query: str = Query(..., min_length=1)):
     }
 
 
-@app.post("/api/scrape")
-def trigger_scrape():
-    """Trigger Playwright live browser scraping and vector embedding."""
-    try:
-        print("Launching Playwright web interception flow...")
-        filtered_df = get_filtered_df()
-        
-        stored_points = []
-        if filtered_df is not None and not filtered_df.empty:
-            stored_points = embed_and_store_ami_descriptions(filtered_df)
+from pydantic import BaseModel
+from LLM.pipeline import get_pipeline
+from LLM.schemas import ProcurementNotice
 
-        return {
-            "status": "success",
-            "message": f"Scraped and filtered {len(filtered_df) if filtered_df is not None else 0} opportunities.",
-            "stored_count": len(stored_points),
-            "top_endpoints": ENDPOINT_RESULTS[:5],
-        }
-    except Exception as e:
-        print("Scrape trigger error:", e)
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": str(e)}
-        )
+
+class ExtractTextRequest(BaseModel):
+    text: str
+    source_name: Optional[str] = "Manual Ingestion"
+    source_url: Optional[str] = None
+    persist: bool = True
+
+
+@app.post("/api/extract", response_model=ProcurementNotice)
+def extract_from_notice_text(payload: ExtractTextRequest):
+    """Phase 2 NLP Multilingual extraction & feasibility analysis for raw text or PDF/HTML content."""
+    pipeline = get_pipeline()
+    notice = pipeline.process(
+        raw_input=payload.text,
+        source_name=payload.source_name,
+        source_url=payload.source_url,
+        persist_db=payload.persist,
+    )
+    return notice
+
+
+@app.post("/api/transform-json", response_model=ProcurementNotice)
+def transform_heterogeneous_json(raw_json: dict, persist: bool = True):
+    """Phase 2 JSON schema transformer: converts non-standard JSON into standardized ProcurementNotice."""
+    pipeline = get_pipeline()
+    notice = pipeline.process(
+        raw_input=raw_json,
+        persist_db=persist,
+    )
+    return notice
+
+
+@app.get("/api/opportunities/detailed")
+def get_detailed_opportunities(only_relevant: bool = False):
+    """Retrieve all structured Phase 2 opportunities from SQLite database."""
+    from database.db import SessionLocal
+    from database.models import Opportunity
+    
+    session = SessionLocal()
+    try:
+        query = session.query(Opportunity)
+        if only_relevant:
+            query = query.filter(Opportunity.is_relevant == True)
+        
+        opps = query.order_by(Opportunity.id.desc()).all()
+        results = []
+        for opp in opps:
+            results.append({
+                "id": opp.id,
+                "title": opp.title,
+                "description": opp.description,
+                "organization": opp.organization,
+                "submission_deadline": opp.submission_deadline,
+                "country": opp.country,
+                "sector": opp.sector,
+                "language": opp.language,
+                "budget": opp.budget,
+                "criteres": opp.criteres or [],
+                "lots": opp.lots or [],
+                "documents_requis": opp.documents_requis or [],
+                "dates": opp.dates or {},
+                "relevance_score": opp.relevance_score,
+                "is_relevant": opp.is_relevant,
+                "relevance_rationale": opp.relevance_rationale,
+                "synthese_opportunite": opp.synthese_opportunite,
+                "analyse_faisabilite": opp.analyse_faisabilite,
+            })
+        return {"count": len(results), "opportunities": results}
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+

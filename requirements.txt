@@ -10,3 +10,6 @@ qdrant-client
 fastapi
 uvicorn
 sqlalchemy
+pydantic
+pypdf
+

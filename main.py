@@ -1,9 +1,14 @@
 import pandas as pd
 
-from database.db import engine, Base
+from database.db import engine, Base, SessionLocal
+from database.models import Opportunity
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,retrive_spesific_data
 from sc2 import  get_filtered_df
+import json
+
+with open("tests/test_data.json", "r", encoding="utf-8") as f:
+    test_data = json.load(f)
 
 
 def create_database():
@@ -16,22 +21,30 @@ def create_database():
 def main():
     create_database()
 
+    session = SessionLocal()
+
     client = get_qdrant_client()
     print(f"Qdrant client initialized: {client}" if client else "Qdrant client not initialized.")
 
     test_df = pd.DataFrame(
-        {
-            "id": [1, 2],
-            "title": ["Test Opportunity 1", "Test Opportunity 2"],
-            "description": [
-                "This is a test description for opportunity 1.",
-                "This is a test description for opportunity 2.",
-            ],
-            "organization": ["Test Org 1", "Test Org 2"],
-        }
+        test_data
     )
 
     filtered_df =  get_filtered_df()
+    filtered_data = filtered_df.to_dict(orient="records")
+
+    for item in filtered_data:
+        opp = Opportunity(
+        source_id=1,
+        title=item["title"],
+        description=item["description"],
+        document_url=" ",
+        submission_deadline=item["submission_deadline"],
+        sector=" ",
+        )
+
+        session.add(opp)
+    session.commit()
 
     embed_and_store_ami_descriptions(filtered_df)
 

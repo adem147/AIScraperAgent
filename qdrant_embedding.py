@@ -79,8 +79,11 @@ def embed_and_store_ami_descriptions(df: pd.DataFrame, collection_name: str = No
     points = []
     for index, row in rows.iterrows():
         print(f"Embedding and storing description for row {index}: {row['description_text'][:30]}...")
-        description_text = row["description_text"]
-        embedding = EMBED_MODEL.encode([description_text])[0].tolist()
+        description_text = row["title"] + " " + row["description_text"]
+        embedding = EMBED_MODEL.encode(
+            description_text,
+            normalize_embeddings=True
+            ).tolist()
         points.append(
             models.PointStruct(
                 id= hashlib.md5(description_text.encode()).hexdigest(),
@@ -115,9 +118,18 @@ def retrieve_data(collection_name: str = None):
 
 def retrive_spesific_data(collection_name: str = None):
     client = CLIENT
-    query = "health"
-
-    query_vector = EMBED_MODEL.encode(query).tolist()
+    query = (
+    "Find procurement opportunities relevant to an IT engineering company. "
+    "The opportunity should involve artificial intelligence, machine learning, "
+    "software development, cybersecurity, cloud computing, data science, "
+    "automation, digital platforms, information systems, or technology consulting. "
+    "Include tenders, calls for proposals, expressions of interest, and contracts "
+    "where technical skills in programming, AI, cybersecurity, or IT infrastructure are required."
+    )
+    query_vector = EMBED_MODEL.encode(
+    query,
+    normalize_embeddings=True
+    ).tolist()
 
     results = client.query_points(
         collection_name=collection_name,
@@ -127,4 +139,4 @@ def retrive_spesific_data(collection_name: str = None):
 
     for r in results.points:
         print(r.payload)   # your stored data
-        print(r.score)     # similarity score
+        print(f"{r.score:.2f}")     # similarity score

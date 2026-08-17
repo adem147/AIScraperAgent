@@ -1,6 +1,8 @@
 import pandas as pd
 from playwright.sync_api import sync_playwright
 
+from database.models import Opportunity
+from database.models import Opportunity
 from scraper.json_parser import create_sample_text, get_middle_response_items, parse_json_response
 from scraper.embedding import score_response_usefulness
 from scraper.filtering import (
@@ -67,6 +69,7 @@ def get_filtered_df():
             cleaned_df = clean_api_dataframe(full_payload["procnotices"])
             normalized_df = normalize_world_bank(cleaned_df)
             filtered_df = filter_relevant(normalized_df)
+
 
             print("\n===== CLEANED DATAFRAME SAMPLE CREATED =====")
             with open("output.txt", "w", encoding="utf-8") as handle:
