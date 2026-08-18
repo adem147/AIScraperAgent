@@ -1,5 +1,10 @@
 import json
 
+
+
+import re
+from typing import Any, List, Dict, Union
+
 import pandas as pd
 from playwright.sync_api import sync_playwright
 from playwright.sync_api import TimeoutError
@@ -8,7 +13,7 @@ from requests import session
 from database.models import Opportunity, BestApiEndpoint,Source
 from database.models import Opportunity
 from database.storage import get_best_api_for_source, save_best_api_for_source
-from scraper.json_parser import create_sample_text, get_middle_response_items, parse_json_response
+from scraper.json_parser import create_sample_text, get_middle_response_items, parse_json_response, universal_json_extractor
 from scraper.embedding import score_response_usefulness
 from scraper.filtering import (
     clean_api_dataframe,
@@ -18,6 +23,8 @@ from scraper.filtering import (
     process_payload
 )
 
+
+from LLM.nlp_mapper import extract_from_json
 
 #url = "https://projects.worldbank.org/en/projects-operations/opportunities"
 ENDPOINT_RESULTS = []
@@ -57,6 +64,7 @@ def handle_response(response):
         else:
             pass
            # print("Content-Type:", response.headers.get("content-type"))
+
 
 def get_filtered_df(source : Source):
 
@@ -108,16 +116,22 @@ def get_filtered_df(source : Source):
 
       
         full_payload = fetch_best_api_data(best_api.endpoint_url)
-       
+
         processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
+
+        field_mapper: dict = extract_from_json(processed_payload)
+
+        print("extracted_mapper:", field_mapper)
+
+        #print("processed_payload:", type(processed_payload))
+        #processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
        
 
         if processed_payload is not None:
 
             cleaned_df = clean_api_dataframe(processed_payload)
-            normalized_df = normalize_world_bank(cleaned_df)
+            normalized_df = normalize_world_bank(cleaned_df,field_mapper)
             filtered_df = filter_relevant(normalized_df)
-            print(filtered_df)
 
 
 
@@ -127,6 +141,7 @@ def get_filtered_df(source : Source):
 
         browser.close()
         return filtered_df
+    
 
 
 if __name__ == "__main__":

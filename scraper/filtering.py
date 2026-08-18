@@ -1,5 +1,8 @@
 import pandas as pd
 import requests
+import json
+from typing import Any, Dict, List, Optional
+
 
 
 def fetch_best_api_data(best_api_url):
@@ -53,7 +56,7 @@ def clean_api_dataframe(data):
     return pd.json_normalize(data)
 
 
-def normalize_world_bank(df):
+def normalize_world_bank(df,mapper:dict):
     """Rename the World Bank columns to a simple, reusable schema."""
     if df is None:
         return pd.DataFrame()
@@ -67,41 +70,39 @@ def normalize_world_bank(df):
     if df.empty:
         return df.copy()
 
-    rename_map = {
-        "notice_type": "type",
-        "noticedate": "date",
-        "notice_lang_name": "language",
-        "notice_status": "status",
-        "submission_deadline_date": "submission_deadline",
-        "project_ctry_name": "country",
-        "project_id": "id",
-        "project_name": "title",
-        "bid_description": "description",
-        "procurement_group_desc": "group",
-        "submission_date": "submission_date",
-        "market_approach_name": "market_approach",
-        "market_approach_region_name": "market_region",
-        "procurement_major_sector_name": "sector",
-    }
+    if mapper is None or not isinstance(mapper, dict):
+        print("Mapper is None or not a dictionary. Returning original DataFrame.")
+        return df.copy()
+
+    rename_map = mapper  # Use the provided mapping for renaming
 
     normalized_df = df.copy()
     normalized_df = normalized_df.rename(columns=rename_map)
 
     return normalized_df
 
+def process_payload(full_payload: Any, path: List[str]) -> List[Any]:
+    """Extract relevant data block from nested payload using a schema path."""
 
-def process_payload(full_payload,path):
-    """Extract the relevant data block from the full payload based on the schema path."""
-    if path is None or not isinstance(path, list):
-        return None
+    if not full_payload or not path:
+        return []
 
+    # Navigate through nested dict
     for key in path:
         if isinstance(full_payload, dict):
             full_payload = full_payload.get(key)
         else:
-            return None
+            return []
 
-    return full_payload
+    # Normalize output to list safely
+    if full_payload is None:
+        return []
+
+    if isinstance(full_payload, list):
+        return full_payload
+
+    # wrap single object into list
+    return [full_payload]
 
 
 def filter_relevant(df):

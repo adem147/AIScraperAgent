@@ -43,6 +43,7 @@ def main():
         print(f"Processing source: {source.organization_name} (ID: {source.id})")
         filtered_df = get_filtered_df(source)
         filtered_data = filtered_df.to_dict(orient="records")
+        print(f"Filtered data for source {source.organization_name}: {filtered_data}")
 
         opportunities = []
 
@@ -57,6 +58,8 @@ def main():
                     sector=" ",
                     hash_id=generate_hash(item["title"], item["submission_deadline"], item["description"])
                 )
+
+               # print(opp.title)
 
                 session.add(opp)
                 session.commit()

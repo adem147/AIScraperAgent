@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Date, Float, Boolean, Text, JSON
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Date, Float, Boolean, Text, JSON
 from .db import Base
 
 
@@ -51,6 +51,6 @@ class Opportunity(Base):
 
     document_url = Column(String)
 
-    submission_deadline = Column(String)
+    submission_deadline = Column(DateTime,index=True)
 
     sector = Column(String)
