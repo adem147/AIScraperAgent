@@ -57,4 +57,6 @@ class Opportunity(Base):
 
     submission_deadline = Column(DateTime,index=True)
 
+    country = Column(String)
+
     sector = Column(String)

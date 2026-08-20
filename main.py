@@ -10,7 +10,7 @@ from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,retrive_spesific_data
 from sc2 import  get_filtered_df
 import json
-
+from dateutil import parser
 
 SOURCE = []
 
@@ -22,7 +22,13 @@ def create_database():
     Base.metadata.create_all(engine)
     print("Database created successfully!")
 
-
+def parse_date(value):
+    if not value:
+        return None
+    try:
+        return parser.parse(value)
+    except:
+        return None
 
 def main():
     create_database()
@@ -39,9 +45,10 @@ def main():
     )
 
     for source in SOURCE:
-        print(f"Processing source: {source.title} (ID: {source.id})")
+        print(f"======= Processing source: {source.title} (ID: {source.id}) =======")
         filtered_df = get_filtered_df(source)
         filtered_data = filtered_df.to_dict(orient="records")
+
         #print(f"Filtered data for source {source.title}: {filtered_data}")
 
         opportunities = []
@@ -49,15 +56,22 @@ def main():
         for item in filtered_data:
             try:
                 opp = Opportunity(
-                    source_id=source.id,
-                    title=item["title"],
-                    description=item["description"],
-                    document_url=" ",
-                    submission_deadline=item["submission_deadline"],
-                    sector=" ",
-                    hash_id=generate_hash(item["title"], item["submission_deadline"], item["description"])
-                )
+                source_id=source.id,
+                title=item.get("title"," "),
+                description=item.get("description"," "),
+                url=item.get("url", ""),
 
+                submission_deadline=parse_date(item.get("submission_deadline"," ")),
+                published_date=parse_date(item.get("published_date"," ")),
+
+                sector=item.get("sector"," "),
+
+                hash_id=generate_hash(
+                    item.get("title",""),
+                    item.get("submission_deadline",""),
+                    item.get("description","")
+                )
+                )
                # print(opp.title)
 
                 session.add(opp)

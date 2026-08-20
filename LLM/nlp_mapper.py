@@ -22,17 +22,21 @@ TARGET SCHEMA:
 {
   "title": null,
   "description": null,
-  "document_url": null,
-  "submission_deadline": null,
-  "sector": null
+  "url": null,
+  "published_date": null,
+  "submission_date",null,
+  "sector": null,
+  "contry":null
 }
 
 MAPPING GUIDELINES:
 - "title": field representing the main object (what is being procured)
 - "description": field containing descriptive or detailed text
 - "submission_deadline": field containing a closing or deadline date
-- "document_url": field containing a URL or link
+- "published_date": field representing publication date, release date, or announcement date
+- "url": field containing a URL or link
 - "sector": field representing category, domain, or industry
+- "country": field representing the country where the project or procurement is located or assigned
 
 IMPORTANT:
 - Analyze BOTH field names and their values to determine meaning

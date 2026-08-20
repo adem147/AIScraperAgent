@@ -18,7 +18,7 @@ from scraper.embedding import score_response_usefulness
 from scraper.filtering import (
     clean_api_dataframe,
     fetch_best_api_data,
-    filter_relevant,
+    filter_relevant_columns,
     normalize_world_bank,
     process_payload
 )
@@ -30,7 +30,7 @@ ENDPOINT_RESULTS = []
 # schema_registry.py
 
 SCHEMA_REGISTRY = {
-    "worldbank": {
+    "world bank": {
         "data_path": ["procnotices"],
     },
     "tuneps": {
@@ -142,29 +142,26 @@ def get_filtered_df(source : Source) -> pd.DataFrame:
         filtered_df = pd.DataFrame()
 
       
-        full_payload = fetch_best_api_data(best_api)
+        processed_payload = fetch_best_api_data(best_api)
 
-        processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.title.lower(), {}).get("data_path", []))
-
-        field_mapper: dict = extract_from_json(processed_payload)
+        try:
+            field_mapper: dict = extract_from_json(processed_payload)
+        except ValueError as e:
+            print(e.text)
 
         print("extracted_mapper:", field_mapper)
-
-        #print("processed_payload:", type(processed_payload))
-        #processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.title.lower(), {}).get("data_path", []))
-       
 
         if processed_payload is not None:
 
             cleaned_df = clean_api_dataframe(processed_payload)
             normalized_df = normalize_world_bank(cleaned_df,field_mapper)
-            filtered_df = filter_relevant(normalized_df)
+            filtered_df = filter_relevant_columns(normalized_df)
 
 
 
             print("\n===== CLEANED DATAFRAME SAMPLE CREATED =====")
             with open("output.txt", "w", encoding="utf-8") as handle:
-                handle.write(filtered_df.head(25).to_string())
+                handle.write(filtered_df.head(100).to_string())
 
         browser.close()
         return filtered_df
