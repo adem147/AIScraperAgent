@@ -60,3 +60,20 @@ class Opportunity(Base):
     country = Column(String)
 
     sector = Column(String)
+
+
+class SimilarityResult(Base):
+    __tablename__ = "similarity_results"
+
+    id = Column(Integer, primary_key=True)
+
+    opportunity_id = Column(
+        Integer,
+        ForeignKey("opportunities.id"),
+        nullable=False,
+        index=True,
+    )
+
+    similarity_score = Column(Float, nullable=False)
+
+    title = Column(String, nullable=False)

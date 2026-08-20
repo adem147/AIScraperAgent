@@ -2,7 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-from scraper.html_extractor import extract_ao_text
+from scraper.html_extractor import extract_from_link
+from LLM.nlp_extractor import extract_from_text
 
 
 base_url = "https://www.intt.tn/fr/index.php"
@@ -51,14 +52,29 @@ def scrape_static_site(base_url):
 
     return links
 
-def extract_from_links(links):
+
+def get_filtred_data():
+
+    filtred_data = [] 
+
+    print("======= processing source : INTT ======")
+
+    links = scrape_static_site(base_url)
+    links = links[:10]
     for link in links:
-        url = striped_url+link
-        text = extract_ao_text(url)
-        print(text)
+        text = extract_from_link(striped_url,link)
+        opp = extract_from_text(text)
+        if(opp["title"] is None or opp["description"] is None):
+            continue
+        filtred_data.append(opp)
+    return filtred_data
+        
     
 
 
-links = scrape_static_site(base_url)
-extract_from_links(links)
+if __name__ == "__main__":
+   pass
+
+
+
 

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from database.db import SessionLocal
-from database.models import BestApiEndpoint, Source
+from database.models import BestApiEndpoint, SimilarityResult, Source
 
 
 def get_all_sources():
@@ -34,6 +34,22 @@ def save_best_api_for_source(best_api_endpoint: BestApiEndpoint):
         session.add(
             best_api_endpoint
         )
+        session.commit()
+        return True
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return False
+    finally:
+        session.close()
+
+
+def save_similarity_results(results):
+    """Replace the stored similarity results with the latest search results."""
+    session: Session = SessionLocal()
+    try:
+        #session.query(SimilarityResult).delete()
+        session.add_all(results)
         session.commit()
         return True
     except Exception as e:
