@@ -49,7 +49,6 @@ env/
 data/
 datasets/
 *.csv
-*.json
 *.jsonl
 *.parquet
 
