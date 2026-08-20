@@ -26,13 +26,12 @@ from scraper.filtering import (
 
 from LLM.nlp_mapper import extract_from_json
 
-#url = "https://projects.worldbank.org/en/projects-operations/opportunities"
 ENDPOINT_RESULTS = []
 # schema_registry.py
 
 SCHEMA_REGISTRY = {
     "worldbank": {
-        "data_path": ["data", "items"],
+        "data_path": ["procnotices"],
     },
     "tuneps": {
         "data_path": ["payload", "data"],  
@@ -40,8 +39,12 @@ SCHEMA_REGISTRY = {
 }
 
 def handle_response(response):
+
+    #print(response.url)
+
     if response.request.resource_type in ["fetch", "xhr"]:
         # print(f"\n {response.request.method} {response.url}")
+       # print(response.request.post_data)
 
         parsed_data = parse_json_response(response)
 
@@ -50,13 +53,29 @@ def handle_response(response):
             sample_items = get_middle_response_items(parsed_data, limit=5)
            # print(f"Sample items for embedding: {sample_items}")  # Print the sample items for debugging
             sample_text = create_sample_text(sample_items)
-            print("Sample text for embedding:", sample_text,"source:",response.url)  # Print the first 200 characters of the sample text for debugging
+            #print("Sample text for embedding:", sample_text,"source:",response.url)  # Print the first 200 characters of the sample text for debugging
             usefulness = score_response_usefulness(sample_text)
+
+            header = response.headers
+            payload = response.request.post_data
+
+            if(isinstance(header,str)):
+                header = json.loads(header)
+            elif(header is None):
+                header = ""
+
+
+            if(isinstance(payload,str)):
+                payload = json.loads(payload)
+            elif(header is None):
+                payload = ""        
 
             if usefulness:
                 ENDPOINT_RESULTS.append({
                     "method": response.request.method,
                     "url": response.url,
+                    "header":header,
+                    "payload":payload,
                     "similarity_score": usefulness["similarity_score"],
                     "sample_items": sample_items,
                 })
@@ -66,7 +85,7 @@ def handle_response(response):
            # print("Content-Type:", response.headers.get("content-type"))
 
 
-def get_filtered_df(source : Source):
+def get_filtered_df(source : Source) -> pd.DataFrame:
 
     url = source.url
     source_id = source.id
@@ -89,7 +108,7 @@ def get_filtered_df(source : Source):
             try:
                 page = browser.new_page()
                 page.on("response", handle_response)
-                page.goto(url, wait_until="networkidle",timeout=50000)  # Wait until network is idle or timeout after 50 seconds
+                page.goto(url, wait_until="networkidle",timeout=30000)  # Wait until network is idle or timeout after 30 seconds
             except TimeoutError as e:
                 print(f"Timeout error occurred while waiting for API responses: {e}")
             except Exception as e:
@@ -101,11 +120,19 @@ def get_filtered_df(source : Source):
                 reverse=True
             )
 
-            best_api = ranked_results[0]
+
+            try : 
+                best_api = ranked_results[0]
+            except Exception as e:
+                print(e.text)
+                print("no useful API found ! MAKE SURE this is a dynamic API site ! OR this site could be down ! ")
+                return pd.DataFrame()
 
             best_api = BestApiEndpoint(
                 source_id=source_id,
-                endpoint_url=best_api["url"],
+                url=best_api["url"],
+                header =best_api["header"],
+                payload = best_api["payload"],
                 method=best_api["method"],
                 similarity_score=best_api["similarity_score"],
             )
@@ -115,16 +142,16 @@ def get_filtered_df(source : Source):
         filtered_df = pd.DataFrame()
 
       
-        full_payload = fetch_best_api_data(best_api.endpoint_url)
+        full_payload = fetch_best_api_data(best_api)
 
-        processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
+        processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.title.lower(), {}).get("data_path", []))
 
         field_mapper: dict = extract_from_json(processed_payload)
 
         print("extracted_mapper:", field_mapper)
 
         #print("processed_payload:", type(processed_payload))
-        #processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
+        #processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.title.lower(), {}).get("data_path", []))
        
 
         if processed_payload is not None:

@@ -7,7 +7,8 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(
-    bind=engine
+    bind=engine,
+    expire_on_commit=False,
 )
 
 Base = declarative_base()

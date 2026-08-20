@@ -19,7 +19,6 @@ with open("tests/test_data.json", "r", encoding="utf-8") as f:
 
 
 def create_database():
-    print("Creating database...")
     Base.metadata.create_all(engine)
     print("Database created successfully!")
 
@@ -40,10 +39,10 @@ def main():
     )
 
     for source in SOURCE:
-        print(f"Processing source: {source.organization_name} (ID: {source.id})")
+        print(f"Processing source: {source.title} (ID: {source.id})")
         filtered_df = get_filtered_df(source)
         filtered_data = filtered_df.to_dict(orient="records")
-        print(f"Filtered data for source {source.organization_name}: {filtered_data}")
+        #print(f"Filtered data for source {source.title}: {filtered_data}")
 
         opportunities = []
 
@@ -76,7 +75,7 @@ def main():
 
         embed_and_store_ami_descriptions(opportunities)
 
-    retrive_spesific_data(get_collection_name())
+        retrive_spesific_data(get_collection_name())
 
 
 

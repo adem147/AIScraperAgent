@@ -104,6 +104,7 @@ def retrieve_data(collection_name: str = None):
 
 
 def retrive_spesific_data(collection_name: str = None):
+
     client = CLIENT
     query = (
     "Find procurement opportunities relevant to an IT engineering company. "
@@ -130,12 +131,19 @@ def retrive_spesific_data(collection_name: str = None):
     normalize_embeddings=True
     ).tolist()
 
-    results = client.query_points(
-        collection_name=collection_name,
-        query=query_vector,
-    )
+    try:
 
-    for r in results.points[:10]:
-        print(r.payload)   # your stored data
-        print(f"{r.score:.2f}")     # similarity score
-        print(f"{r.score:.2f}")     # similarity score
+        results = client.query_points(
+            collection_name=collection_name,
+            query=query_vector,
+        )
+
+        for r in results.points[:10]:
+                print(r.payload)   # your stored data
+                print(f"{r.score:.2f}")     # similarity score
+                print(f"{r.score:.2f}")     # similarity score
+
+    except Exception as e:
+        print(e)
+
+    

@@ -1,6 +1,3 @@
-                                                                                                                      title                                                                                                 description    submission_deadline
-0                                                                            Projet d'aménagement de l'abattoir de Monastir                                                                مشروع تهيئة و صيانة المسلخ البلديّ بالمنستير  2026-09-17 09:00:00.0
-1                                                     إقتناء مواد تجهيز صحي و مواد كهربائية و مواد حديدية و مواد بناء و دهن                                       إقتناء مواد تجهيز صحي و مواد كهربائية و مواد حديدية و مواد بناء و دهن  2026-09-07 10:00:00.0
-2                                                                                 Acquisition d'un système de fil d'attente                                                                         اقتناء منظومات تنظيم صفوف الانتظار   2026-09-18 10:00:00.0
-3  TRAVAUX D’AMENAGEMENT D’UN ÉCHANGEUR POUR L’ACCÈS A LA ZONE INDUSTRIELLE BOU-ARGOUB-HACHED DANS LE GOUVERNORAT DE NABEUL  بأشغال بناء محول على مستوى الطريق الوطنية رقم 1 والسكة الحديدية بالمنطقة الصناعية بوعرقوب حشاد بولاية نابل  2026-09-21 10:00:00.0
-4                                                                             اقتناء معدات النظافة و الطرقات و تجهيزات أخرى                                                               اقتناء معدات النظافة و الطرقات و تجهيزات أخرى  2026-09-18 10:00:00.0
+Empty DataFrame
+Columns: []
+Index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

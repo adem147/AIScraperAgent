@@ -9,7 +9,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 try:
     from qdrant_client import QdrantClient
-except ImportError:  # pragma: no cover
+except ImportError:  
     QdrantClient = None
 
 def get_qdrant_client():

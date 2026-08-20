@@ -5,40 +5,20 @@ from typing import Any, Dict, List, Optional
 
 
 
-def fetch_best_api_data(best_api_url):
+def fetch_best_api_data(best_api):
     """Fetch the full payload from the top-ranked API endpoint."""
-    if not best_api_url:
+    if not best_api:
         return None
 
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        "Origin": "https://www.tuneps.tn",
-        "Referer": "https://www.tuneps.tn/portail/offres"
-    }
 
-    payload = {
-        "listSort": [],
-        "dataSearch": [
-            {
-                "key": "publicYn",
-                "value": "Y",
-                "specificSearch": "="
-            }
-        ],
-        "listCol": [],
-        "pagination": {
-            "offSet": 0,
-            "limit": 5
-        },
-        "sort": {
-            "nameCol": "publicDt",
-            "direction": "desc nulls last"
-        }
-    }
+    url = best_api.url
+
+    headers = best_api.header
+
+    payload = best_api.payload
 
     response = requests.post(
-    best_api_url,
+    url=url,
     headers=headers,
     json=payload,
     verify=False

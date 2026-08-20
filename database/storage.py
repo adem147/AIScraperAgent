@@ -20,6 +20,10 @@ def get_best_api_for_source(source_id):
             .filter(BestApiEndpoint.source_id == source_id)
             .first()
         )
+    except Exception as e:
+        session.rollback()
+        print(e.text)
+        return False
     finally:
         session.close()
 
@@ -32,5 +36,10 @@ def save_best_api_for_source(best_api_endpoint: BestApiEndpoint):
         )
         session.commit()
         return True
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return False
     finally:
         session.close()
+        
