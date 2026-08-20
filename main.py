@@ -9,6 +9,7 @@ from scraper.hashing import generate_hash
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,retrive_spesific_data
 from sc2 import  get_filtered_df
+from static_sc import get_filtred_data
 import json
 
 
@@ -40,10 +41,15 @@ def main():
     )
 
     for source in SOURCE:
-        print(f"Processing source: {source.organization_name} (ID: {source.id})")
-        filtered_df = get_filtered_df(source)
-        filtered_data = filtered_df.to_dict(orient="records")
-        print(f"Filtered data for source {source.organization_name}: {filtered_data}")
+        print(f"======= Processing source: {source.title} (ID: {source.id}) =======")
+        filtered_df = get_filtered_df(source) #data coming from ths dynamic api filter
+
+        filtered_data = get_filtred_data() #data coming from the static html filter
+
+        filtered_data += filtered_df.to_dict(orient="records") 
+
+
+        #print(f"Filtered data for source {source.title}: {filtered_data}")
 
         opportunities = []
 

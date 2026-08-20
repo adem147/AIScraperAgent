@@ -144,7 +144,4 @@ def get_filtered_df(source : Source):
     
 
 
-if __name__ == "__main__":
-    result = get_filtered_df()
-
 

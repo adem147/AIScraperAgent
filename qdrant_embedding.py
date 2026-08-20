@@ -2,6 +2,8 @@ import hashlib
 
 import pandas as pd
 from database.models import Opportunity
+from database.models import SimilarityResult
+from database.storage import save_similarity_results
 from scraper.embedding import MODEL
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_client import models
@@ -104,6 +106,7 @@ def retrieve_data(collection_name: str = None):
 
 
 def retrive_spesific_data(collection_name: str = None):
+
     client = CLIENT
     query = (
     "Find procurement opportunities relevant to an IT engineering company. "
@@ -117,25 +120,35 @@ def retrive_spesific_data(collection_name: str = None):
     query,
     normalize_embeddings=True
     ).tolist()
-    query = (
-    "Find procurement opportunities relevant to an IT engineering company. "
-    "The opportunity should involve artificial intelligence, machine learning, "
-    "software development, cybersecurity, cloud computing, data science, "
-    "automation, digital platforms, information systems, or technology consulting. "
-    "Include tenders, calls for proposals, expressions of interest, and contracts "
-    "where technical skills in programming, AI, cybersecurity, or IT infrastructure are required."
-    )
-    query_vector = EMBED_MODEL.encode(
-    query,
-    normalize_embeddings=True
-    ).tolist()
 
-    results = client.query_points(
-        collection_name=collection_name,
-        query=query_vector,
-    )
+    try:
 
-    for r in results.points[:10]:
-        print(r.payload)   # your stored data
-        print(f"{r.score:.2f}")     # similarity score
-        print(f"{r.score:.2f}")     # similarity score
+        results = client.query_points(
+            collection_name=collection_name,
+            query=query_vector,
+        )
+
+        similarity_results = [
+            SimilarityResult(
+                opportunity_id=int(r.id),
+                similarity_score=float(r.score),
+                title=(r.payload or {}).get("title", ""),
+            )
+            for r in results.points[:5]
+        ]
+        save_similarity_results(similarity_results)
+
+        print("======= Embedding results saved ! =======")
+
+        for r in results.points[:5]:
+            print(r.payload.get("title",": "),f"{r.score:.2f}")   # your stored data
+            print("-" *40)
+
+        return similarity_results
+
+
+    except Exception as e:
+        print(e)
+        return []
+
+    

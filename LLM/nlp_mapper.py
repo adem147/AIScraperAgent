@@ -12,6 +12,7 @@ Your task is to map fields from an INPUT JSON object to a TARGET SCHEMA.
 CRITICAL RULES:
 - Output ONLY raw JSON
 - Do NOT include explanations or markdown
+- Keep the descrition short not more than one line 
 - The output must start with { and end with }
 - Keys MUST be the TARGET SCHEMA fields
 - Values MUST be INPUT JSON FIELD NAMES (keys), NOT their values
@@ -22,14 +23,22 @@ TARGET SCHEMA:
 {
   "title": null,
   "description": null,
+<<<<<<< HEAD
   "document_url": null,
   "submission_deadline": null,
   "sector": null
+=======
+  "url": null,
+  "published_date": null,
+  "submission_deadline",null,
+  "sector": null,
+  "contry":null
+>>>>>>> 28cf4ce (integrated the same data pipeline for both static html data and dynamic api data)
 }
 
 MAPPING GUIDELINES:
 - "title": field representing the main object (what is being procured)
-- "description": field containing descriptive or detailed text
+- "description": field containing descriptive or detailed text 
 - "submission_deadline": field containing a closing or deadline date
 - "document_url": field containing a URL or link
 - "sector": field representing category, domain, or industry
