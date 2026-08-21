@@ -1,0 +1,61 @@
+[
+  {
+    "id": "CORPUS-FR-01",
+    "language": "FR",
+    "domain": "AI_TELECOM_CYBERSECURITY",
+    "expected_relevant": true,
+    "min_expected_score": 0.70,
+    "raw_text": "AVIS D'APPEL D'OFFRES NATIONAL N° 08/2026/CERT\nObjet: Mise en place d'une plateforme de Security Operations Center (SOC) et d'un système d'analyse prédictive par Intelligence Artificielle pour la surveillance des réseaux télécoms nationaux.\nOrganisme acheteur: Centre d'Études et de Recherche des Télécommunications (CERT), Tunisie.\nDates clés:\n- Date de publication: 2026-08-01\n- Date limite de remise des offres: 2026-09-15 à 10h00\n- Date d'ouverture des plis: 2026-09-15 à 11h00\nBudget estimé: 450 000 TND TTC.\nAllotissement:\n- Lot 1: Fourniture, installation et configuration de la solution SIEM / SOC et sondes de détection d'intrusions (Budget: 250 000 TND).\n- Lot 2: Développement et déploiement des modèles d'IA pour la détection automatisée d'anomalies de trafic (Budget: 200 000 TND).\nCritères d'éligibilité et de sélection:\n- Entreprise ou groupement justifiant d'au moins 5 ans d'expérience dans les projets SIEM et télécoms.\n- Présence d'au moins deux ingénieurs certifiés en cybersécurité (CISSP, CEH ou équivalent).\nDocuments exigés:\n- Cautionnement provisoire d'un montant de 4 500 TND.\n- Cahier des charges paraphé et signé.\n- Offre technique détaillée et méthodologie.\n- Offre financière complète.\n- Quitus fiscal et attestation d'affiliation à la CNSS.\nSecteur: Télécommunications et Cybersécurité."
+  },
+  {
+    "id": "CORPUS-EN-02",
+    "language": "EN",
+    "domain": "CLOUD_AI_DATA",
+    "expected_relevant": true,
+    "min_expected_score": 0.70,
+    "raw_text": "REQUEST FOR EXPRESSIONS OF INTEREST (CONSULTING SERVICES – FIRMS SELECTION)\nProject: World Bank Digital Transformation and Data Intelligence Initiative\nAssignment Title: Consulting Services for the Development of an AI-Powered Big Data Lake and Predictive Analytics Platform for Public Services.\nReference Notice No: WB-PROC-2026-AI99\nIssuing Organization: World Bank & Ministry of Digital Economy\nCountry: Regional / Multi-Country\nKey Dates:\n- Publication Date: 2026-08-05\n- Submission Deadline Date: 2026-09-30 at 17:00 UTC\nEstimated Budget: USD 350,000\nLots: Single Comprehensive Lot covering Architecture, ETL Data Pipeline, Machine Learning Models, and Cloud DevOps Deployment.\nQualification & Evaluation Criteria:\n- Proven track record with at least 3 completed enterprise data science / machine learning projects in the last 4 years.\n- Key personnel must include a Lead Data Architect, Senior Machine Learning Engineer, and Cloud Security Specialist.\nRequired Documents:\n- Letter of Expression of Interest\n- Corporate profile and audited financial statements for the past 3 fiscal years\n- CVs of proposed key experts\n- ISO 9001 / ISO 27001 certifications (if available)"
+  },
+  {
+    "id": "CORPUS-AR-03",
+    "language": "AR",
+    "domain": "TELECOM_MONITORING",
+    "expected_relevant": true,
+    "min_expected_score": 0.70,
+    "raw_text": "إعلان طلب عروض عدد 14/2026\nالموضوع: اقتناء وتركيز منظومة معلوماتية ذكية لمراقبة جودة خدمات شبكات الاتصالات المتنقلة والجيل الخامس (5G QoE Monitoring System) وتحليل البيانات الضخمة.\nالمشتري العمومي: الهيئة الوطنية للاتصالات، تونس.\nالآجال والتواريخ:\n- تاريخ النشر: 2026-08-02\n- التاريخ الأقصى لقبول العروض: 2026-09-25 على الساعة الحادية عشرة صباحا\n- تاريخ فتح العروض: 2026-09-25 على الساعة الحادية عشرة والنصف صباحا\nالميزانية التقديرية: 320,000 دينار تونسي\nالشروط والمعايير:\n- أقدمية لا تقل عن 3 سنوات في مجال الشبكات وهندسة البرمجيات\n- توفير فريق عمل يضم مهندسي اتصالات وبرمجيات معتمدين\nالوثائق المطلوبة:\n- الضمان المالي الوقتي (الضمانة البنكية)\n- العرض الفني الكامل\n- العرض المالي وجدول الأثمان\n- شهادة الوضعية الجبائية والشهادة في عدم الإفلاس"
+  },
+  {
+    "id": "CORPUS-IRRELEVANT-04",
+    "language": "EN",
+    "domain": "CIVIL_ENGINEERING_ROADS",
+    "expected_relevant": false,
+    "max_expected_score": 0.50,
+    "raw_text": "INVITATION FOR BIDS (CIVIL WORKS)\nContract Title: Construction of 75 km Heavy Gravel Roads, Culverts, and Concrete Bridges in Zambezia Province.\nEmployer: National Road Authority / Department of Rural Public Infrastructure\nCountry: Mozambique\nSubmission Deadline: 2026-09-10\nEstimated Budget: USD 1,800,000\nScope: Excavation, asphalt paving, road leveling, earthworks, drainage trenches, and safety barrier installation.\nRequired: Heavy construction equipment fleet (graders, bulldozers, dump trucks) and civil engineering civil works license."
+  },
+  {
+    "id": "CORPUS-NONSTD-JSON-05",
+    "language": "EN",
+    "domain": "SOFTWARE_DEV",
+    "expected_relevant": true,
+    "min_expected_score": 0.70,
+    "raw_json": {
+      "notice_type": "Request for Proposals",
+      "project_name": "Digital Public Procurement Interoperability & API Gateway Refactoring",
+      "bid_description": "Selection of a software engineering consultancy firm to modernize the national procurement portal using microservices, REST APIs, OAuth2 security, and automated document verification workflows.",
+      "project_ctry_name": "Tunisia",
+      "procurement_major_sector_name": "Information and Communications Technologies",
+      "submission_deadline_date": "2026-09-22T14:00:00Z",
+      "buyer": "High Authority of Public Procurement (HAICOP)",
+      "estimated_cost": "180000 EUR",
+      "lots_info": [
+        {"num": 1, "name": "API Gateway and Auth Subsystem", "amt": "100k EUR"},
+        {"num": 2, "name": "Automated Document Validation Module", "amt": "80k EUR"}
+      ],
+      "mandatory_docs": [
+        "Technical proposal",
+        "Financial cost breakdown",
+        "Company registration certificate",
+        "Bid security bond"
+      ]
+    }
+  }
+]

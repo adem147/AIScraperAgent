@@ -59,16 +59,21 @@ def handle_response(response):
             header = response.headers
             payload = response.request.post_data
 
-            if(isinstance(header,str)):
-                header = json.loads(header)
-            elif(header is None):
-                header = ""
+            if isinstance(header, str):
+                try:
+                    header = json.loads(header)
+                except Exception:
+                    pass
+            elif header is None:
+                header = {}
 
-
-            if(isinstance(payload,str)):
-                payload = json.loads(payload)
-            elif(header is None):
-                payload = ""        
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except Exception:
+                    pass
+            elif payload is None:
+                payload = {}
 
             if usefulness:
                 ENDPOINT_RESULTS.append({
