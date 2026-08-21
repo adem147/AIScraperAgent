@@ -46,8 +46,10 @@ env/
 # =========================
 # Data files
 # =========================
+data/
 datasets/
 *.csv
+*.jsonl
 *.parquet
 
 # Keep sample data if needed
