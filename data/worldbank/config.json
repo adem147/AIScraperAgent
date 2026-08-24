@@ -8,7 +8,7 @@
         "srt": "noticedate",
         "order": "desc",
         "apilang": "en",
-        "rows": 50,
+        "rows": 10,
         "srce": "both",
         "os": "",
         "notice_type_exact": "Invitation for Bids^Invitation for Prequalification^Request for Expression of Interest",

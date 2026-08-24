@@ -11,12 +11,34 @@ from qdrant_embedding import embed_and_store_ami_descriptions, retrieve_data,ret
 from sc2 import  get_filtered_df
 from static_sc import get_filtred_data
 import json
+from datetime import datetime
 
 
 SOURCE = []
 
 with open("tests/test_data.json", "r", encoding="utf-8") as f:
     test_data = json.load(f)
+
+
+def parse_datetime(value):
+    if not value or isinstance(value, datetime):
+        return value or None
+
+    if isinstance(value, str):
+        normalized_value = value.strip()
+        if not normalized_value:
+            return None
+
+        try:
+            return datetime.fromisoformat(normalized_value.replace("Z", "+00:00"))
+        except ValueError:
+            for date_format in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+                try:
+                    return datetime.strptime(normalized_value, date_format)
+                except ValueError:
+                    continue
+
+    raise ValueError(f"Unsupported datetime value: {value!r}")
 
 
 def create_database():
@@ -55,21 +77,22 @@ def main():
 
         for item in filtered_data:
             try:
+                published_date = parse_datetime(item.get("published_date"))
+                submission_deadline = parse_datetime(item.get("submission_deadline"))
+
                 opp = Opportunity(
                     source_id=source.id,
                     title=item.get("title",""),
                     description=item.get("description",""),
                     url=item.get("url",""),
-                    published_date = item.get("published_date",""),
-                    submission_deadline=item.get("submission_deadline",""),
+                    published_date=published_date,
+                    submission_deadline=submission_deadline,
                     sector=item.get("sector",""),
                     hash_id=generate_hash(item.get("title",""), 
-                                          item.get("submission_deadline",""), 
+                                          submission_deadline.isoformat() if submission_deadline else "", 
                                           item.get("description","")
                                         )
                 )
-
-                print("opportunite title " : opp.title)
 
                 session.add(opp)
                 session.commit()
@@ -78,11 +101,8 @@ def main():
 
             except IntegrityError:
                 session.rollback()
-                print(f"IntegrityError: Duplicate entry for opportunity with hash_id {opp.hash_id}. Skipping.")
-
             except Exception as e:
                 session.rollback()
-                print(f"Error while processing opportunity: {e}")
 
         embed_and_store_ami_descriptions(opportunities)
 
