@@ -23,17 +23,11 @@ TARGET SCHEMA:
 {
   "title": null,
   "description": null,
-<<<<<<< HEAD
-  "document_url": null,
-  "submission_deadline": null,
-  "sector": null
-=======
   "url": null,
   "published_date": null,
-  "submission_deadline",null,
+  "submission_deadline": null,
   "sector": null,
-  "contry":null
->>>>>>> 28cf4ce (integrated the same data pipeline for both static html data and dynamic api data)
+  "country": null
 }
 
 MAPPING GUIDELINES:
@@ -42,6 +36,8 @@ MAPPING GUIDELINES:
 - "submission_deadline": field containing a closing or deadline date
 - "document_url": field containing a URL or link
 - "sector": field representing category, domain, or industry
+- "country": field representing the country or region of the opportunity
+
 
 IMPORTANT:
 - Analyze BOTH field names and their values to determine meaning
@@ -51,7 +47,8 @@ IMPORTANT:
 def extract_from_json(json_data:list, source_name=None, source_url=None, notice_id=None):
     """Extract structured procurement entities from JSON data."""
     if not json_data:
-        raise ValueError("Input JSON data cannot be empty.")
+        print("Input JSON data cannot be empty.")
+        return {}
 
     prompt = f"""
     JSON DATA:

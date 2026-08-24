@@ -64,7 +64,7 @@ def get_filtred_data():
     for link in links:
         text = extract_from_link(striped_url,link)
         opp = extract_from_text(text)
-        if(opp["title"] is None or opp["description"] is None):
+        if(opp.get("title") is None or opp.get("description") is None):
             continue
         filtred_data.append(opp)
     return filtred_data

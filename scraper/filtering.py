@@ -4,50 +4,6 @@ import json
 from typing import Any, Dict, List, Optional
 
 
-
-def fetch_best_api_data(best_api_url):
-    """Fetch the full payload from the top-ranked API endpoint."""
-    if not best_api_url:
-        return None
-
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        "Origin": "https://www.tuneps.tn",
-        "Referer": "https://www.tuneps.tn/portail/offres"
-    }
-
-    payload = {
-        "listSort": [],
-        "dataSearch": [
-            {
-                "key": "publicYn",
-                "value": "Y",
-                "specificSearch": "="
-            }
-        ],
-        "listCol": [],
-        "pagination": {
-            "offSet": 0,
-            "limit": 5
-        },
-        "sort": {
-            "nameCol": "publicDt",
-            "direction": "desc nulls last"
-        }
-    }
-
-    response = requests.post(
-    best_api_url,
-    headers=headers,
-    json=payload,
-    verify=False
-    )
-    response.raise_for_status()
-
-    return response.json()
-
-
 def clean_api_dataframe(data):
     """Convert API JSON into a simple pandas DataFrame and clean it."""
     if data is None:
@@ -111,7 +67,6 @@ def filter_relevant(df):
     FINAL_COLUMNS = [
     "title",
     "description",
-    "organization",
     "submission_deadline",
     "country",
     "sector",

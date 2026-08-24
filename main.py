@@ -57,15 +57,19 @@ def main():
             try:
                 opp = Opportunity(
                     source_id=source.id,
-                    title=item["title"],
-                    description=item["description"],
-                    document_url=" ",
-                    submission_deadline=item["submission_deadline"],
-                    sector=" ",
-                    hash_id=generate_hash(item["title"], item["submission_deadline"], item["description"])
+                    title=item.get("title",""),
+                    description=item.get("description",""),
+                    url=item.get("url",""),
+                    published_date = item.get("published_date",""),
+                    submission_deadline=item.get("submission_deadline",""),
+                    sector=item.get("sector",""),
+                    hash_id=generate_hash(item.get("title",""), 
+                                          item.get("submission_deadline",""), 
+                                          item.get("description","")
+                                        )
                 )
 
-               # print(opp.title)
+                print("opportunite title " : opp.title)
 
                 session.add(opp)
                 session.commit()
@@ -74,11 +78,11 @@ def main():
 
             except IntegrityError:
                 session.rollback()
-                #print(f"IntegrityError: Duplicate entry for opportunity with hash_id {opp.hash_id}. Skipping.")
+                print(f"IntegrityError: Duplicate entry for opportunity with hash_id {opp.hash_id}. Skipping.")
 
             except Exception as e:
                 session.rollback()
-                #print(f"Error while processing opportunity: {e}")
+                print(f"Error while processing opportunity: {e}")
 
         embed_and_store_ami_descriptions(opportunities)
 

@@ -10,7 +10,7 @@ class BestApiEndpoint(Base):
 
     source_id = Column(Integer, ForeignKey("sources.id"))
 
-    endpoint_url = Column(String)
+    url = Column(String)
 
     method = Column(String)
 
@@ -24,7 +24,7 @@ class Source(Base):
 
     hash_id = Column(String, unique=True)
 
-    organization_name = Column(String)
+    title = Column(String)
 
     url = Column(String)
 
@@ -49,7 +49,9 @@ class Opportunity(Base):
 
     description = Column(String)
 
-    document_url = Column(String)
+    url = Column(String)
+
+    published_date = Column(DateTime,index=True)
 
     submission_deadline = Column(DateTime,index=True)
 

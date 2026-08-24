@@ -29,7 +29,7 @@ def chat_completion(messages, temperature=0.1, max_tokens=2048):
     }
     
     try:
-        resp = requests.post(BASE_URL, headers=headers, json=payload, timeout=45)
+        resp = requests.post(BASE_URL, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
         return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
     except Exception as e:

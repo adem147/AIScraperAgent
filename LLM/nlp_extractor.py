@@ -17,9 +17,9 @@ TARGET SCHEMA:
   "description": null,
   "url": null,
   "published_date": null,
-  "submission_deadline",null,
+  "submission_deadline": null,
   "sector": null,
-  "contry":null
+  "country": null
 }
 
 MAPPING GUIDELINES:

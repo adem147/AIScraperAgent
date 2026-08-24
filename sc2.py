@@ -17,11 +17,12 @@ from scraper.json_parser import create_sample_text, get_middle_response_items, p
 from scraper.embedding import score_response_usefulness
 from scraper.filtering import (
     clean_api_dataframe,
-    fetch_best_api_data,
     filter_relevant,
     normalize_world_bank,
     process_payload
 )
+from scraper.fetching import fetch_best_api_data
+from data.worldbank import data_path
 
 
 from LLM.nlp_mapper import extract_from_json
@@ -89,7 +90,7 @@ def get_filtered_df(source : Source):
             try:
                 page = browser.new_page()
                 page.on("response", handle_response)
-                page.goto(url, wait_until="networkidle",timeout=50000)  # Wait until network is idle or timeout after 50 seconds
+                page.goto(url, wait_until="networkidle",timeout=30000)  # Wait until network is idle or timeout after 50 seconds
             except TimeoutError as e:
                 print(f"Timeout error occurred while waiting for API responses: {e}")
             except Exception as e:
@@ -105,7 +106,7 @@ def get_filtered_df(source : Source):
 
             best_api = BestApiEndpoint(
                 source_id=source_id,
-                endpoint_url=best_api["url"],
+                url=best_api["url"],
                 method=best_api["method"],
                 similarity_score=best_api["similarity_score"],
             )
@@ -115,9 +116,9 @@ def get_filtered_df(source : Source):
         filtered_df = pd.DataFrame()
 
       
-        full_payload = fetch_best_api_data(best_api.endpoint_url)
+        full_payload = fetch_best_api_data(best_api.url, best_api.method)
 
-        processed_payload = process_payload(full_payload.copy(), SCHEMA_REGISTRY.get(source.organization_name.lower(), {}).get("data_path", []))
+        processed_payload = process_payload(full_payload.copy(), data_path)
 
         field_mapper: dict = extract_from_json(processed_payload)
 

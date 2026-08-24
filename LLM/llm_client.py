@@ -9,15 +9,35 @@ client = genai.Client(
 )
 
 
-for model in client.models.list():
-    print(model.name)
+# for model in client.models.list():
+   # print(model.name)
 
 def ask_llm(prompt):
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-3.6-flash",
         contents=prompt
     )
 
     return response.text
+
+
+import ollama
+
+def ask_ollama(prompt, context):
+    response = ollama.chat(
+        model='gemma3:4b',
+        messages=[
+            {
+                "role": "system",
+                "content": f"You are an assistant. Use the following context to answer:\n\n{context}"
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    )
+
+    return response['message']['content']
 
