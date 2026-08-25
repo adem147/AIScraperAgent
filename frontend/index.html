@@ -35,6 +35,14 @@
       <form id="search-form" class="search">
         <label class="sr-only" for="query">Search opportunities</label>
         <input id="query" name="query" type="search" placeholder="Search by title, sector, or keyword...">
+        <label class="sr-only" for="source-filter">Filter by source</label>
+        <select id="source-filter" name="source_id">
+          <option value="">All sources</option>
+        </select>
+        <div class="view-toggle" role="group" aria-label="Opportunity view">
+          <button id="all-view" class="view-toggle-button active" type="button">All scraped</button>
+          <button id="relevant-view" class="view-toggle-button" type="button">CERT relevant</button>
+        </div>
         <button class="button dark" type="submit">Search</button>
       </form>
       <div id="results" class="results"><p class="empty">Loading opportunities...</p></div>

@@ -78,6 +78,7 @@ def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
                         "hash_id": el.hash_id,
                         "title": el.title,
                         "description": embedding_text,
+                        "source_id": el.source_id,
                     },
                 )
             )
@@ -87,6 +88,44 @@ def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
 
     client.upsert(collection_name=collection_name, points=points)
     return True
+
+
+CERT_RELEVANCE_QUERY = (
+    "Find procurement opportunities relevant to an IT engineering company. "
+    "The opportunity should involve artificial intelligence, machine learning, "
+    "software development, cybersecurity, cloud computing, data science, "
+    "automation, digital platforms, information systems, or technology consulting. "
+    "Include tenders, calls for proposals, expressions of interest, and contracts "
+    "where technical skills in programming, AI, cybersecurity, or IT infrastructure are required."
+)
+
+
+def search_qdrant_opportunities(query: str = "", limit: int = 50):
+    """Return Qdrant-ranked opportunities for a query or the CERT relevance profile."""
+    if CLIENT is None:
+        return []
+
+    search_text = query.strip() or CERT_RELEVANCE_QUERY
+    query_vector = EMBED_MODEL.encode(search_text, normalize_embeddings=True).tolist()
+    try:
+        response = CLIENT.query_points(
+            collection_name=get_collection_name(),
+            query=query_vector,
+            limit=limit,
+            with_payload=True,
+        )
+    except Exception as error:
+        print(f"Qdrant search failed: {error}")
+        return []
+
+    return [
+        {
+            "id": int(result.id),
+            "score": float(result.score),
+            **(result.payload or {}),
+        }
+        for result in response.points
+    ]
 
 
 def retrieve_data(collection_name: str = None):
@@ -108,14 +147,7 @@ def retrieve_data(collection_name: str = None):
 def retrive_spesific_data(collection_name: str = None):
 
     client = CLIENT
-    query = (
-    "Find procurement opportunities relevant to an IT engineering company. "
-    "The opportunity should involve artificial intelligence, machine learning, "
-    "software development, cybersecurity, cloud computing, data science, "
-    "automation, digital platforms, information systems, or technology consulting. "
-    "Include tenders, calls for proposals, expressions of interest, and contracts "
-    "where technical skills in programming, AI, cybersecurity, or IT infrastructure are required."
-    )
+    query = CERT_RELEVANCE_QUERY
     query_vector = EMBED_MODEL.encode(
     query,
     normalize_embeddings=True

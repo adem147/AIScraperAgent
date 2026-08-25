@@ -10,10 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const terminalOutput = document.getElementById('terminal-output');
 
   const searchInput = document.getElementById('search-input');
+  const sourceFilter = document.getElementById('source-filter');
   const btnSearch = document.getElementById('btn-search');
   const searchPills = document.querySelectorAll('.pill');
   const opportunitiesGrid = document.getElementById('opportunities-grid');
   const resultsCountText = document.getElementById('results-count-text');
+
+  async function loadSources() {
+    const res = await fetch('/api/sources');
+    if (!res.ok) return;
+    const sources = await res.json();
+    console.log('Sources loaded');
+    sourceFilter.innerHTML = '<option value="">All sources</option>' + sources.map(source =>
+      `<option value="${source.id}">${escapeHtml(source.title || 'Untitled source')}</option>`
+    ).join('');
+  }
 
   // Terminal logging helper
   function logTerminal(message, type = 'sys') {
@@ -47,6 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render opportunities cards
   function renderOpportunities(items) {
+    if (sourceFilter.value) {
+      items = items.filter(item => String(item.source_id) === sourceFilter.value);
+    }
     opportunitiesGrid.innerHTML = '';
 
     if (!items || items.length === 0) {
@@ -76,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="tag-item" style="color: #6ee7b7;"><i class="fa-solid fa-earth-americas"></i> ${item.country || 'Global'}</span>
           </div>
           <h3 class="card-title">${escapeHtml(item.title)}</h3>
+          <p class="card-source"><i class="fa-solid fa-database"></i> Source: ${escapeHtml(item.source_title || 'Unknown source')}</p>
           <p class="card-desc">${escapeHtml(item.description)}</p>
           <div class="card-tags">
             <span class="tag-item"><i class="fa-solid fa-building"></i> ${escapeHtml(item.organization || 'World Bank')}</span>
@@ -122,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Trigger Live Scraping Pipeline
   async function triggerScraper() {
+    console.log("innnnnnnnnnnnnn")
     logTerminal('python sc2.py --live-intercept', 'prompt');
     logTerminal('Launching Playwright Chromium headless instance...', 'sys');
     logTerminal('Intercepting outgoing fetch/XHR network requests on World Bank Opportunities...', 'sys');
@@ -155,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Event Listeners
   btnSearch.addEventListener('click', () => performSearch(searchInput.value.trim()));
+  sourceFilter.addEventListener('change', () => performSearch(searchInput.value.trim()));
 
   searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -175,5 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize
   fetchStats();
-  performSearch('cybersecurity');
+  loadSources();
+  console.log("inisialised")
+  performSearch();
 });

@@ -151,6 +151,10 @@
         <div class="search-input-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input type="text" id="search-input" placeholder="e.g. cybersecurity threat detection, cloud infrastructure, health data..." value="cybersecurity">
+          <label class="sr-only" for="source-filter">Filter by source</label>
+          <select id="source-filter" class="source-filter">
+            <option value="">All sources</option>
+          </select>
           <button id="btn-search" class="btn btn-primary">
             <i class="fa-solid fa-sparkles"></i> Search Vectors
           </button>

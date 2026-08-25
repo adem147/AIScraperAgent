@@ -458,6 +458,22 @@ body {
   box-shadow: 0 0 12px var(--primary-glow);
 }
 
+.source-filter {
+  min-width: 180px;
+  padding: 0.9rem 1rem;
+  background: rgba(10, 15, 26, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: white;
+  font: inherit;
+}
+
+.source-filter:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
 .search-pills {
   display: flex;
   align-items: center;
@@ -554,6 +570,12 @@ body {
   color: white;
   line-height: 1.35;
   margin-bottom: 0.8rem;
+}
+
+.card-source {
+  color: #6ee7b7;
+  font-size: 0.8rem;
+  margin: -0.2rem 0 0.8rem;
 }
 
 .card-desc {

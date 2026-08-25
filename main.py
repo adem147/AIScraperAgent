@@ -7,12 +7,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from database.db import engine, Base, SessionLocal, insert_opportunities
-from database.storage import get_all_sources
+from database.storage import count_opportunities, delete_opportunity as remove_opportunity, get_all_sources, get_sources_by_ids, search_opportunities as find_opportunities
 from qdrant_connection import get_collection_name, get_qdrant_client
-from qdrant_embedding import embed_and_store_ami_descriptions, retrive_spesific_data
+from qdrant_embedding import embed_and_store_ami_descriptions, retrive_spesific_data, search_qdrant_opportunities
 from sc2 import get_filtred_df_dynamic
 from static_sc import get_filtred_df_static
-from database.models import Opportunity, SimilarityResult
+from database.models import Opportunity, Source
 import json
 
 
@@ -31,13 +31,16 @@ def create_database():
     print("Database created successfully!")
 
 
-def opportunity_to_dict(opportunity: Opportunity, score: float = 0.0) -> dict[str, Any]:
+def opportunity_to_dict(opportunity: Opportunity, source: Source | None = None, score: float = 0.0) -> dict[str, Any]:
     return {
         "id": opportunity.id,
         "title": opportunity.title or "Untitled opportunity",
         "description": opportunity.description or "",
         "url": opportunity.url or "",
         "sector": opportunity.sector or "",
+        "source_id": source.id if source else opportunity.source_id,
+        "source_title": source.title if source else "Unknown source",
+        "source_url": source.url if source else "",
         "published_date": opportunity.published_date.isoformat() if opportunity.published_date else None,
         "submission_deadline": opportunity.submission_deadline.isoformat() if opportunity.submission_deadline else None,
         "score": round(score, 3),
@@ -62,44 +65,57 @@ def sources():
 
 @app.get("/api/stats")
 def stats():
-    session = SessionLocal()
-    try:
-        return {"opportunities": session.query(Opportunity).count(), "sources": len(get_all_sources())}
-    finally:
-        session.close()
+    return {"opportunities": count_opportunities(), "sources": len(get_all_sources())}
 
 
 @app.get("/api/opportunities")
-def search_opportunities(query: str = Query(default="", max_length=200)):
+def search_opportunities(
+    query: str = Query(default="", max_length=200),
+    source_id: int | None = Query(default=None),
+):
+    results = [opportunity_to_dict(opportunity, source, score)
+               for opportunity, source, score in find_opportunities(query, source_id)]
+    return {"count": len(results), "results": results}
+
+
+@app.get("/api/search")
+def search_qdrant(query: str = Query(default="", max_length=500)):
+    """Return Qdrant-ranked opportunities, using the CERT profile when query is empty."""
+
     session = SessionLocal()
-    try:
-        opportunities = session.query(Opportunity).all()
-        terms = {term.lower() for term in query.split() if term.strip()}
-        results = []
-        for opportunity in opportunities:
-            searchable = f"{opportunity.title or ''} {opportunity.description or ''} {opportunity.sector or ''}".lower()
-            score = sum(term in searchable for term in terms) / len(terms) if terms else 0.0
-            if not terms or score > 0:
-                results.append(opportunity_to_dict(opportunity, score))
-        results.sort(key=lambda item: item["score"], reverse=True)
-        return {"count": len(results), "results": results[:50]}
-    finally:
-        session.close()
+
+    qdrant_results = search_qdrant_opportunities(query)
+
+    qdrant_map = {r["id"]: r["score"] for r in qdrant_results}
+
+    ids = [int(result.get("id")) for result in qdrant_results if result.get("id") is not None]
+
+    db_query_results = (
+        session.query(Opportunity, Source)
+        .join(Source, Opportunity.source_id == Source.id)
+        .filter(Opportunity.id.in_(ids))
+        .all()
+    )
+
+    results = [
+        opportunity_to_dict(
+            opportunity=opportunity,
+            source=source,
+            score=qdrant_map.get(opportunity.id, 0.0)
+        )
+        for (opportunity, source) in db_query_results
+    ]
+    
+    results.sort(key=lambda x: x["score"], reverse=True)
+
+    return {"count": len(results), "results": results}
 
 
 @app.delete("/api/opportunities/{opportunity_id}")
 def delete_opportunity(opportunity_id: int):
-    session = SessionLocal()
     try:
-        opportunity = session.get(Opportunity, opportunity_id)
-        if opportunity is None:
+        if not remove_opportunity(opportunity_id):
             raise HTTPException(status_code=404, detail="Opportunity not found")
-
-        session.query(SimilarityResult).filter(
-            SimilarityResult.opportunity_id == opportunity_id
-        ).delete(synchronize_session=False)
-        session.delete(opportunity)
-        session.commit()
 
         qdrant_client = get_qdrant_client()
         if qdrant_client is not None:
@@ -117,10 +133,7 @@ def delete_opportunity(opportunity_id: int):
     except HTTPException:
         raise
     except Exception as error:
-        session.rollback()
         raise HTTPException(status_code=500, detail=str(error)) from error
-    finally:
-        session.close()
 
 
 @app.post("/api/scrape")
@@ -169,4 +182,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    pass
