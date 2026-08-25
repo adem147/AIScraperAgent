@@ -1,13 +1,18 @@
 import requests
+import pandas as pd
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from scraper.html_extractor import extract_from_link
 from LLM.nlp_extractor import extract_from_text
 
 
-base_url = "https://www.intt.tn/fr/index.php"
-striped_url = "https://www.intt.tn/fr/"
+
+def get_stripped_url(url):
+    """Return the URL directory without query parameters or fragments."""
+    parsed_url = urlsplit(url.strip())
+    directory = parsed_url.path.rsplit("/", 1)[0] + "/"
+    return urlunsplit((parsed_url.scheme, parsed_url.netloc, directory, "", ""))
 
 
 def scrape_static_site(base_url):
@@ -53,27 +58,28 @@ def scrape_static_site(base_url):
     return links
 
 
-def get_filtred_data():
+def get_filtred_df_static(source):
+
+    base_url = source.url
+    
+    striped_url = get_stripped_url(base_url)
 
     filtred_data = [] 
 
-    print("======= processing source : INTT ======")
-
     links = scrape_static_site(base_url)
+
+    print(f"Getting only the first 10 links ! from website : {source.title}")
     links = links[:10]
     for link in links:
-        text = extract_from_link(striped_url,link)
+        text = extract_from_link(urljoin(striped_url, link))
         opp = extract_from_text(text)
         if(opp.get("title") is None or opp.get("description") is None):
             continue
         filtred_data.append(opp)
-    return filtred_data
+    return pd.DataFrame(filtred_data)
         
     
 
-
-if __name__ == "__main__":
-   pass
 
 
 

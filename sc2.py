@@ -67,7 +67,7 @@ def handle_response(response):
            # print("Content-Type:", response.headers.get("content-type"))
 
 
-def get_filtered_df(source : Source):
+def get_filtred_df_dynamic(source: Source):
 
     url = source.url
     source_id = source.id

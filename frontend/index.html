@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CERT Opportunity Monitor</title>
+  <link rel="stylesheet" href="/frontend/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">C</span><span>CERT Monitor</span></div>
+    <span id="health" class="health"><i></i> Checking API</span>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">Procurement intelligence</p>
+      <h1>Find the opportunities<br><em>worth pursuing.</em></h1>
+      <p class="lead">Search your collected tenders, inspect their details, and refresh sources from one quiet workspace.</p>
+      <button id="scrape-button" class="button primary">Run scraper</button>
+      <p id="scrape-status" class="status" aria-live="polite"></p>
+    </section>
+
+    <section class="stats" aria-label="Overview">
+      <div><strong id="opportunity-count">--</strong><span>opportunities</span></div>
+      <div><strong id="source-count">--</strong><span>sources</span></div>
+      <div><strong>API</strong><span>FastAPI backend</span></div>
+    </section>
+
+    <section class="workspace">
+      <div class="section-heading">
+        <div><p class="eyebrow">Your collection</p><h2>Opportunities</h2></div>
+        <span id="result-count" class="muted"></span>
+      </div>
+      <form id="search-form" class="search">
+        <label class="sr-only" for="query">Search opportunities</label>
+        <input id="query" name="query" type="search" placeholder="Search by title, sector, or keyword...">
+        <button class="button dark" type="submit">Search</button>
+      </form>
+      <div id="results" class="results"><p class="empty">Loading opportunities...</p></div>
+    </section>
+  </main>
+  <script src="/frontend/app.js"></script>
+</body>
+</html>

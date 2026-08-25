@@ -20,9 +20,8 @@ def extract_from_html(url):
 
     return text
 
-def extract_from_link(striped_url,link):
-    
-    url = striped_url+link
+def extract_from_link(url):
+
     text = extract_from_html(url)
     return text
 
