@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const searchInput = document.getElementById('search-input');
   const sourceFilter = document.getElementById('source-filter');
+  const deadlineFilter = document.getElementById('deadline-filter');
   const btnSearch = document.getElementById('btn-search');
   const searchPills = document.querySelectorAll('.pill');
   const opportunitiesGrid = document.getElementById('opportunities-grid');
@@ -61,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sourceFilter.value) {
       items = items.filter(item => String(item.source_id) === sourceFilter.value);
     }
+    if (deadlineFilter.value) {
+      items = items.filter(item => item.submission_deadline && item.submission_deadline.slice(0, 10) >= deadlineFilter.value);
+    }
     opportunitiesGrid.innerHTML = '';
 
     if (!items || items.length === 0) {
@@ -98,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <div class="card-footer">
-          <span><i class="fa-solid fa-calendar-clock"></i> Deadline: ${escapeHtml(item.submission_deadline || 'N/A')}</span>
+          <span class="deadline-date"><i class="fa-solid fa-calendar-clock"></i> Deadline date: ${escapeHtml(formatDate(item.submission_deadline))}</span>
           <a href="${item.url || '#'}" target="_blank" rel="noopener" class="card-link">View Source <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>
       `;
@@ -115,6 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return text.replace(/[&<>"']/g, function(m) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
     });
+  }
+
+  function formatDate(value) {
+    if (!value) return 'N/A';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Invalid date';
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   }
 
   // Execute Vector Search
@@ -172,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event Listeners
   btnSearch.addEventListener('click', () => performSearch(searchInput.value.trim()));
   sourceFilter.addEventListener('change', () => performSearch(searchInput.value.trim()));
+  deadlineFilter.addEventListener('change', () => performSearch(searchInput.value.trim()));
 
   searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {

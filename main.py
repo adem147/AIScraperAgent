@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from typing import Any
+from datetime import date
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -72,9 +73,10 @@ def stats():
 def search_opportunities(
     query: str = Query(default="", max_length=200),
     source_id: int | None = Query(default=None),
+    deadline_after: date | None = Query(default=None),
 ):
     results = [opportunity_to_dict(opportunity, source, score)
-               for opportunity, source, score in find_opportunities(query, source_id)]
+               for opportunity, source, score in find_opportunities(query, source_id, deadline_after)]
     return {"count": len(results), "results": results}
 
 

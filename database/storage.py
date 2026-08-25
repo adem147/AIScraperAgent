@@ -1,3 +1,5 @@
+from datetime import datetime, time
+
 from sqlalchemy.orm import Session
 from database.db import SessionLocal
 from database.models import BestApiEndpoint, Opportunity, SimilarityResult, Source
@@ -37,8 +39,8 @@ def count_opportunities():
         session.close()
 
 
-def search_opportunities(query="", source_id=None):
-    """Find opportunities matching text and, optionally, a source."""
+def search_opportunities(query="", source_id=None, deadline_after=None):
+    """Find opportunities matching text, source, and an inclusive deadline date."""
     session: Session = SessionLocal()
     try:
         opportunity_query = session.query(Opportunity, Source).outerjoin(
@@ -46,6 +48,11 @@ def search_opportunities(query="", source_id=None):
         )
         if source_id is not None:
             opportunity_query = opportunity_query.filter(Opportunity.source_id == source_id)
+        if deadline_after is not None:
+            deadline_limit = datetime.combine(deadline_after, time.min)
+            opportunity_query = opportunity_query.filter(
+                Opportunity.submission_deadline >= deadline_limit
+            )
 
         terms = {term.lower() for term in query.split() if term.strip()}
         results = []

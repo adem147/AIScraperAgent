@@ -39,12 +39,16 @@
         <select id="source-filter" name="source_id">
           <option value="">All sources</option>
         </select>
+        <button class="button dark" type="submit">Search</button>
+      </form>
+      <div class="filter-controls">
+        <label for="deadline-filter">Deadline date from</label>
+        <input id="deadline-filter" name="deadline_after" type="date" aria-label="Deadline date filter" title="Show deadlines on or after">
         <div class="view-toggle" role="group" aria-label="Opportunity view">
           <button id="all-view" class="view-toggle-button active" type="button">All scraped</button>
           <button id="relevant-view" class="view-toggle-button" type="button">CERT relevant</button>
         </div>
-        <button class="button dark" type="submit">Search</button>
-      </form>
+      </div>
       <div id="results" class="results"><p class="empty">Loading opportunities...</p></div>
     </section>
   </main>

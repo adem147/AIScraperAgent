@@ -5,6 +5,7 @@ const results = document.querySelector('#results');
 const resultCount = document.querySelector('#result-count');
 const query = document.querySelector('#query');
 const sourceFilter = document.querySelector('#source-filter');
+const deadlineFilter = document.querySelector('#deadline-filter');
 const allView = document.querySelector('#all-view');
 const relevantView = document.querySelector('#relevant-view');
 const scrapeButton = document.querySelector('#scrape-button');
@@ -18,7 +19,9 @@ function escapeHtml(value = '') {
 
 function formatDate(value) {
   if (!value) return 'No deadline';
-  return new Date(value).toLocaleDateString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Invalid date';
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
 function setApiStatus(isOnline) {
@@ -45,7 +48,8 @@ function render(items) {
   results.innerHTML = items.map(item => `
     <article class="opportunity">
       <div class="opportunity-main">
-        <div class="opportunity-meta"><span>${escapeHtml(item.sector || 'General')}</span><span>${formatDate(item.submission_deadline)}</span></div>
+        <div class="opportunity-meta"><span>${escapeHtml(item.sector || 'General')}</span></div>
+        <p class="opportunity-deadline">Deadline date: <strong>${escapeHtml(formatDate(item.submission_deadline))}</strong></p>
         <p class="opportunity-source">Source: <strong>${escapeHtml(item.source_title || 'Unknown source')}</strong></p>
         <h3>${escapeHtml(item.title)}</h3>
         <p>${escapeHtml(item.description || 'No description available.')}</p>
@@ -95,11 +99,13 @@ async function search() {
     const response = await fetch(`/api/search?query=${encodeURIComponent(query.value)}`);
     if (!response.ok) throw new Error('Qdrant search unavailable');
     const data = await response.json();
-    render(data.results.filter(item => !sourceFilter.value || String(item.source_id) === sourceFilter.value));
+    render(data.results.filter(item => (!sourceFilter.value || String(item.source_id) === sourceFilter.value)
+      && (!deadlineFilter.value || (item.submission_deadline && item.submission_deadline.slice(0, 10) >= deadlineFilter.value))));
     return;
   }
   const params = new URLSearchParams({ query: query.value });
   if (sourceFilter.value) params.set('source_id', sourceFilter.value);
+  if (deadlineFilter.value) params.set('deadline_after', deadlineFilter.value);
   const response = await fetch(`/api/opportunities?${params}`);
   if (!response.ok) throw new Error('Search unavailable');
   const data = await response.json();
@@ -126,6 +132,10 @@ document.querySelector('#search-form').addEventListener('submit', event => {
 });
 
 sourceFilter.addEventListener('change', () => {
+  search().catch(() => { results.innerHTML = '<p class="empty">Search failed. Try again.</p>'; });
+});
+
+deadlineFilter.addEventListener('change', () => {
   search().catch(() => { results.innerHTML = '<p class="empty">Search failed. Try again.</p>'; });
 });
 

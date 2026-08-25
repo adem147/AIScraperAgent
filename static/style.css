@@ -474,6 +474,11 @@ body {
   box-shadow: 0 0 12px var(--primary-glow);
 }
 
+.deadline-filter { width: 150px; padding: 0.55rem 0.7rem; border: 1px solid rgba(248, 113, 113, 0.65); border-radius: 0.5rem; background: rgba(127, 29, 29, 0.22); color: #fee2e2; font-size: 0.8rem; font-weight: 600; color-scheme: dark; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.deadline-filter:focus { border-color: #f87171; outline: none; box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.16); }
+.deadline-date { color: #f87171; }
+.filter-controls { display: flex; align-items: center; gap: 8px; margin-top: 0.8rem; color: var(--text-muted); font-size: 0.75rem; }.filter-controls label { text-transform: uppercase; letter-spacing: 0.05em; }.filter-controls .deadline-filter { padding: 0.5rem 0.65rem; font-size: 0.8rem; }
+
 .search-pills {
   display: flex;
   align-items: center;
