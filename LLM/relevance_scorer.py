@@ -5,10 +5,10 @@ from .nvidia_client import NvidiaLLMClient, get_nvidia_client
 from .schemas import ProcurementNotice
 
 try:
-    from scraper.embedding import MODEL as EMBED_MODEL
+    from scraper.embedding import get_model
     from sklearn.metrics.pairwise import cosine_similarity
 except Exception:
-    EMBED_MODEL = None
+    get_model = None
     cosine_similarity = None
 
 RELEVANCE_THRESHOLD = 0.70
@@ -54,12 +54,13 @@ class RelevanceScorer:
 
     def calculate_embedding_score(self, text: str) -> float:
         """Compute cosine similarity score against CERT domain profile."""
-        if not text or EMBED_MODEL is None or cosine_similarity is None:
+        if not text or get_model is None or cosine_similarity is None:
             return 0.50
 
         try:
-            profile_vec = EMBED_MODEL.encode([CERT_PROFILE_DESCRIPTION])
-            text_vec = EMBED_MODEL.encode([text[:1000]])
+            embed_model = get_model()
+            profile_vec = embed_model.encode([CERT_PROFILE_DESCRIPTION])
+            text_vec = embed_model.encode([text[:1000]])
             sim = cosine_similarity(profile_vec, text_vec)[0][0]
             # Normalize cosine similarity roughly from [-1, 1] / [0.2, 0.8] range into [0.0, 1.0]
             normalized = max(0.0, min(1.0, (sim - 0.1) / 0.7))

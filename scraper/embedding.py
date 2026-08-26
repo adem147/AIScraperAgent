@@ -2,16 +2,25 @@ import os
 os.environ["USE_TF"] = "0"
 os.environ["USE_TORCH"] = "1"
 
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+MODEL = None
+
+
+def get_model():
+    """Load the embedding model only when an embedding operation needs it."""
+    global MODEL
+    if MODEL is None:
+        from sentence_transformers import SentenceTransformer
+
+        MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+    return MODEL
 
 
 def build_usefulness_query(sample_text):
     """Create a semantic query from a response sample to evaluate endpoint usefulness."""
-    sample_text = sample_text[:1000]
+    sample_text = sample_text[:500]
     return (
         "Evaluate whether this API endpoint is useful for CERT procurement intelligence. "
         "Look for public procurement opportunities, tenders, calls for proposals, expressions of interest, "
@@ -27,8 +36,9 @@ def score_response_usefulness(sample_text):
         return None
 
     query = build_usefulness_query(sample_text)
-    sample_embedding = MODEL.encode([sample_text])
-    query_embedding = MODEL.encode([query])
+    model = get_model()
+    sample_embedding = model.encode([sample_text])
+    query_embedding = model.encode([query])
     score = cosine_similarity(query_embedding, sample_embedding)[0][0]
 
     return {

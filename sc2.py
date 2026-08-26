@@ -51,7 +51,7 @@ def handle_response(response):
             sample_items = get_middle_response_items(parsed_data, limit=5)
            # print(f"Sample items for embedding: {sample_items}")  # Print the sample items for debugging
             sample_text = create_sample_text(sample_items)
-            print("Sample text for embedding:", sample_text,"source:",response.url)  # Print the first 200 characters of the sample text for debugging
+            #print("Sample text for embedding:", sample_text,"source:",response.url)  # Print the first 200 characters of the sample text for debugging
             usefulness = score_response_usefulness(sample_text)
 
             if usefulness:

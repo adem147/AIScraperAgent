@@ -4,13 +4,12 @@ import pandas as pd
 from database.models import Opportunity
 from database.models import SimilarityResult
 from database.storage import save_similarity_results
-from scraper.embedding import MODEL
+from scraper.embedding import get_model
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_client import models
 
 
 
-EMBED_MODEL = MODEL
 CLIENT = get_qdrant_client()
 
 
@@ -57,6 +56,8 @@ def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
     client = CLIENT
     if client is None:
         return False
+
+    embed_model = get_model()
     
     if not ensure_collection(collection_name):
         return False
@@ -66,7 +67,7 @@ def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
         try : 
             print(f"Embedding and storing description for opportunity: {el.title[:30]}...")
             embedding_text = el.title + " " + el.description
-            embedding = EMBED_MODEL.encode(
+            embedding = embed_model.encode(
                 embedding_text,
                 normalize_embeddings=True
             ).tolist()
@@ -106,7 +107,7 @@ def search_qdrant_opportunities(query: str = "", limit: int = 50):
         return []
 
     search_text = query.strip() or CERT_RELEVANCE_QUERY
-    query_vector = EMBED_MODEL.encode(search_text, normalize_embeddings=True).tolist()
+    query_vector = get_model().encode(search_text, normalize_embeddings=True).tolist()
     try:
         response = CLIENT.query_points(
             collection_name=get_collection_name(),
@@ -148,7 +149,7 @@ def retrive_spesific_data(collection_name: str = None):
 
     client = CLIENT
     query = CERT_RELEVANCE_QUERY
-    query_vector = EMBED_MODEL.encode(
+    query_vector = get_model().encode(
     query,
     normalize_embeddings=True
     ).tolist()
