@@ -14,6 +14,7 @@ from qdrant_embedding import embed_and_store_ami_descriptions, retrive_spesific_
 from sc2 import get_filtred_df_dynamic
 from static_sc import get_filtred_df_static
 from database.models import Opportunity, Source
+from notification import SMTPSettings, SMTP_PROVIDERS, get_smtp_settings, save_smtp_settings, send_new_opportunities_email
 import json
 
 
@@ -21,6 +22,7 @@ SOURCE = []
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 app = FastAPI(title="CERT Opportunity Monitor")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
+
 
 with open("tests/test_data.json", "r", encoding="utf-8") as f:
     test_data = json.load(f)
@@ -67,6 +69,23 @@ def sources():
 @app.get("/api/stats")
 def stats():
     return {"opportunities": count_opportunities(), "sources": len(get_all_sources())}
+
+
+@app.get("/api/settings/smtp")
+def smtp_settings():
+    return {"providers": SMTP_PROVIDERS, "settings": get_smtp_settings()}
+
+
+@app.put("/api/settings/smtp")
+def update_smtp_settings(settings: SMTPSettings):
+    provider_settings = SMTP_PROVIDERS[settings.provider]
+    save_smtp_settings({
+        **settings.model_dump(),
+        "host": provider_settings["host"],
+        "port": provider_settings["port"],
+        "use_ssl": provider_settings["use_ssl"],
+    })
+    return {"status": "saved", "settings": get_smtp_settings()}
 
 
 @app.get("/api/opportunities")
@@ -150,6 +169,7 @@ def scrape():
             opportunities = insert_opportunities(session, source, dataframe)
             embed_and_store_ami_descriptions(opportunities)
             stored_count += len(opportunities)
+            send_new_opportunities_email(opportunities)
         return {"status": "success", "stored_count": stored_count}
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
@@ -175,7 +195,7 @@ def main():
             final_df = get_filtred_df_dynamic(source)
 
         opportunities = insert_opportunities(session, source, final_df)
-      
+        send_new_opportunities_email(opportunities)
 
         embed_and_store_ami_descriptions(opportunities)
 

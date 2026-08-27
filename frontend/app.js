@@ -10,6 +10,37 @@ const allView = document.querySelector('#all-view');
 const relevantView = document.querySelector('#relevant-view');
 const scrapeButton = document.querySelector('#scrape-button');
 const scrapeStatus = document.querySelector('#scrape-status');
+const smtpForm = document.querySelector('#smtp-form');
+const smtpProvider = document.querySelector('#smtp-provider');
+const smtpStatus = document.querySelector('#smtp-status');
+const smtpPasswordHelp = document.querySelector('#smtp-password-help');
+const settingsDialog = document.querySelector('#settings-dialog');
+const settingsOpen = document.querySelector('#settings-open');
+const settingsClose = document.querySelector('#settings-close');
+
+function updatePasswordHelp() {
+  const help = {
+    gmail: 'Use a Gmail app password. Regular Gmail passwords are not accepted when two-step verification is enabled.',
+    outlook: 'Use your Outlook / Microsoft 365 password or an app password if your organization requires one.',
+    sendgrid: 'Use your SendGrid API key as the password. The username is usually apikey.',
+  };
+  smtpPasswordHelp.textContent = `${help[smtpProvider.value] || help.gmail} The password is never displayed in the frontend.`;
+}
+
+async function loadSmtpSettings() {
+  const response = await fetch('/api/settings/smtp');
+  if (!response.ok) throw new Error('Email settings unavailable');
+  const data = await response.json();
+  smtpProvider.innerHTML = Object.entries(data.providers).map(([key]) =>
+    `<option value="${key}">${key === 'gmail' ? 'Gmail' : key === 'outlook' ? 'Outlook / Microsoft 365' : 'SendGrid'}</option>`
+  ).join('');
+  const settings = data.settings;
+  document.querySelector('#smtp-sender').value = settings.sender || '';
+  document.querySelector('#smtp-recipient').value = settings.recipient || '';
+  document.querySelector('#smtp-username').value = settings.username || '';
+  smtpProvider.value = settings.provider || 'gmail';
+  updatePasswordHelp();
+}
 
 function escapeHtml(value = '') {
   return value.replace(/[&<>"']/g, character => ({
@@ -119,6 +150,7 @@ async function initialize() {
     setApiStatus(true);
     await loadStats();
     await loadSources();
+    await loadSmtpSettings();
     await search();
   } catch (error) {
     setApiStatus(false);
@@ -147,6 +179,52 @@ function setView(view) {
 
 allView.addEventListener('click', () => setView('all'));
 relevantView.addEventListener('click', () => setView('relevant'));
+smtpProvider.addEventListener('change', updatePasswordHelp);
+
+function openSettings() {
+  if (typeof settingsDialog.showModal === 'function') {
+    settingsDialog.showModal();
+  } else {
+    settingsDialog.setAttribute('open', '');
+    settingsDialog.classList.add('is-open');
+  }
+}
+
+function closeSettings() {
+  if (typeof settingsDialog.close === 'function') {
+    settingsDialog.close();
+  }
+  settingsDialog.classList.remove('is-open');
+}
+
+settingsOpen.addEventListener('click', openSettings);
+settingsClose.addEventListener('click', closeSettings);
+settingsDialog.addEventListener('click', event => {
+  if (event.target === settingsDialog) closeSettings();
+});
+
+smtpForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  smtpStatus.textContent = 'Saving...';
+  const payload = {
+    provider: smtpProvider.value,
+    sender: document.querySelector('#smtp-sender').value,
+    recipient: document.querySelector('#smtp-recipient').value,
+    username: document.querySelector('#smtp-username').value,
+    password: document.querySelector('#smtp-password').value,
+  };
+  try {
+    const response = await fetch('/api/settings/smtp', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Could not save email settings');
+    document.querySelector('#smtp-password').value = '';
+    smtpStatus.textContent = 'Email settings saved.';
+  } catch (error) {
+    smtpStatus.textContent = error.message;
+  }
+});
 
 scrapeButton.addEventListener('click', async () => {
   scrapeButton.disabled = true;
