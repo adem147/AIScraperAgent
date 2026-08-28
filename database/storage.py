@@ -1,8 +1,69 @@
 from datetime import datetime, time
 
+import pandas as pd
 from sqlalchemy.orm import Session
-from database.db import SessionLocal
+from database.db import Base, SessionLocal, engine
 from database.models import BestApiEndpoint, Opportunity, SimilarityResult, Source
+from scraper.hashing import generate_hash
+
+
+def initialize_database():
+    """Create database tables when they do not exist yet."""
+    Base.metadata.create_all(engine)
+
+
+def parse_datetime(value):
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        normalized_value = value.strip()
+        if not normalized_value:
+            return None
+        try:
+            return datetime.fromisoformat(normalized_value.replace("Z", "+00:00"))
+        except ValueError:
+            for date_format in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+                try:
+                    return datetime.strptime(normalized_value, date_format)
+                except ValueError:
+                    continue
+    raise ValueError(f"Unsupported datetime value: {value!r}")
+
+
+def insert_opportunities(source, dataframe):
+    """Insert one scraper's filtered DataFrame as a separate batch."""
+    session: Session = SessionLocal()
+    opportunities = []
+    try:
+        for item in dataframe.to_dict(orient="records"):
+            try:
+                published_date = parse_datetime(item.get("published_date"))
+                submission_deadline = parse_datetime(item.get("submission_deadline"))
+                opportunity = Opportunity(
+                    source_id=source.id,
+                    title=item.get("title", ""),
+                    description=item.get("description", ""),
+                    url=item.get("url", ""),
+                    published_date=published_date,
+                    submission_deadline=submission_deadline,
+                    sector=item.get("sector", ""),
+                    hash_id=generate_hash(
+                        item.get("title", ""),
+                        submission_deadline.isoformat() if submission_deadline else "",
+                        item.get("description", ""),
+                    ),
+                )
+                session.add(opportunity)
+                session.commit()
+                session.refresh(opportunity)
+                opportunities.append(opportunity)
+            except Exception:
+                session.rollback()
+        return opportunities
+    finally:
+        session.close()
 
 
 def get_all_sources():
@@ -37,6 +98,57 @@ def count_opportunities():
         return session.query(Opportunity).count()
     finally:
         session.close()
+
+
+def get_opportunities_by_ids(opportunity_ids):
+    """Retrieve opportunities and sources for the requested IDs."""
+    if not opportunity_ids:
+        return []
+    session: Session = SessionLocal()
+    try:
+        return (
+            session.query(Opportunity, Source)
+            .join(Source, Opportunity.source_id == Source.id)
+            .filter(Opportunity.id.in_(opportunity_ids))
+            .all()
+        )
+    finally:
+        session.close()
+
+
+def save_opportunity(opportunity):
+    """Persist an already-created opportunity and return its ID."""
+    session: Session = SessionLocal()
+    try:
+        session.add(opportunity)
+        session.commit()
+        session.refresh(opportunity)
+        return opportunity.id
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def save_procurement_notice(notice):
+    """Persist a processed notice using the current opportunity schema."""
+    submission_deadline = parse_datetime(notice.dates.submission_deadline)
+    published_date = parse_datetime(notice.dates.publication_date)
+    opportunity = Opportunity(
+        hash_id=generate_hash(
+            notice.objet,
+            submission_deadline.isoformat() if submission_deadline else "",
+            notice.synthese_opportunite or notice.objet,
+        ),
+        title=notice.objet,
+        description=notice.synthese_opportunite or notice.objet,
+        url=notice.source_url or "",
+        published_date=published_date,
+        submission_deadline=submission_deadline,
+        sector=notice.sector,
+    )
+    return save_opportunity(opportunity)
 
 
 def search_opportunities(query="", source_id=None, deadline_after=None):

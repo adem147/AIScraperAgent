@@ -7,13 +7,15 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from database.db import engine, Base, SessionLocal, insert_opportunities
-from database.storage import count_opportunities, delete_opportunity as remove_opportunity, get_all_sources, get_sources_by_ids, search_opportunities as find_opportunities
+from database.models import Opportunity, Source
+from database.storage import (count_opportunities, delete_opportunity as remove_opportunity,
+                               get_all_sources, get_opportunities_by_ids,
+                               initialize_database, insert_opportunities,
+                               search_opportunities as find_opportunities)
 from qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_embedding import embed_and_store_ami_descriptions, retrive_spesific_data, search_qdrant_opportunities
 from sc2 import get_filtred_df_dynamic
 from static_sc import get_filtred_df_static
-from database.models import Opportunity, Source
 from notification import SMTPSettings, SMTP_PROVIDERS, get_smtp_settings, save_smtp_settings, send_new_opportunities_email
 import json
 
@@ -30,7 +32,7 @@ with open("tests/test_data.json", "r", encoding="utf-8") as f:
 
 def create_database():
     print("Creating database...")
-    Base.metadata.create_all(engine)
+    initialize_database()
     print("Database created successfully!")
 
 
@@ -103,20 +105,13 @@ def search_opportunities(
 def search_qdrant(query: str = Query(default="", max_length=500)):
     """Return Qdrant-ranked opportunities, using the CERT profile when query is empty."""
 
-    session = SessionLocal()
-
     qdrant_results = search_qdrant_opportunities(query)
 
     qdrant_map = {r["id"]: r["score"] for r in qdrant_results}
 
     ids = [int(result.get("id")) for result in qdrant_results if result.get("id") is not None]
 
-    db_query_results = (
-        session.query(Opportunity, Source)
-        .join(Source, Opportunity.source_id == Source.id)
-        .filter(Opportunity.id.in_(ids))
-        .all()
-    )
+    db_query_results = get_opportunities_by_ids(ids)
 
     results = [
         opportunity_to_dict(
@@ -160,28 +155,23 @@ def delete_opportunity(opportunity_id: int):
 @app.post("/api/scrape")
 def scrape():
     create_database()
-    session = SessionLocal()
     stored_count = 0
     try:
         for source in get_all_sources():
             dataframe = (get_filtred_df_static(source) if source.scrape_type == "static"
                          else get_filtred_df_dynamic(source))
-            opportunities = insert_opportunities(session, source, dataframe)
+            opportunities = insert_opportunities(source, dataframe)
             embed_and_store_ami_descriptions(opportunities)
             stored_count += len(opportunities)
             send_new_opportunities_email(opportunities)
         return {"status": "success", "stored_count": stored_count}
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
-    finally:
-        session.close()
 
 
 
 def main():
     create_database()
-
-    session = SessionLocal()
 
     SOURCE = get_all_sources()                              
 
@@ -194,7 +184,7 @@ def main():
         else:
             final_df = get_filtred_df_dynamic(source)
 
-        opportunities = insert_opportunities(session, source, final_df)
+        opportunities = insert_opportunities(source, final_df)
         send_new_opportunities_email(opportunities)
 
         embed_and_store_ami_descriptions(opportunities)

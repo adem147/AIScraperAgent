@@ -13,4 +13,5 @@ sqlalchemy
 pydantic
 pypdf
 docker
-
+pytest
+sendgrid

@@ -9,8 +9,7 @@ from .relevance_scorer import RelevanceScorer
 from .feasibility_analyser import FeasibilityAnalyser
 from .nvidia_client import get_nvidia_client
 
-from database.db import SessionLocal, Base, engine
-from database.models import Opportunity
+from database.storage import initialize_database, save_procurement_notice
 
 try:
     from qdrant_embedding import embed_and_store_ami_descriptions
@@ -30,7 +29,7 @@ class ProcurementIntelligencePipeline:
         
         # Ensure database tables exist
         try:
-            Base.metadata.create_all(engine)
+            initialize_database()
         except Exception as e:
             print("Database table initialization info:", e)
 
@@ -117,40 +116,12 @@ class ProcurementIntelligencePipeline:
         return results
 
     def save_to_database(self, notice: ProcurementNotice) -> Optional[int]:
-        """Save the processed opportunity into SQLite."""
-        session = SessionLocal()
+        """Save the processed notice through the database storage layer."""
         try:
-            opp = Opportunity(
-                title=notice.objet,
-                description=notice.synthese_opportunite or notice.objet,
-                organization=notice.organisme,
-                document_url=notice.source_url or "",
-                submission_deadline=notice.dates.submission_deadline,
-                sector=notice.sector,
-                country=notice.country,
-                language=notice.language,
-                budget=notice.budget.formatted if notice.budget else None,
-                criteres=notice.criteres,
-                lots=[l.model_dump() for l in notice.lots],
-                documents_requis=notice.documents_requis,
-                dates=notice.dates.model_dump(),
-                relevance_score=notice.relevance_score,
-                is_relevant=notice.is_relevant,
-                relevance_rationale=notice.relevance_rationale,
-                synthese_opportunite=notice.synthese_opportunite,
-                analyse_faisabilite=notice.analyse_faisabilite.model_dump() if notice.analyse_faisabilite else None,
-                raw_data=notice.raw_data,
-            )
-            session.add(opp)
-            session.commit()
-            session.refresh(opp)
-            return opp.id
+            return save_procurement_notice(notice)
         except Exception as e:
-            session.rollback()
             print("Database persistence error:", e)
             return None
-        finally:
-            session.close()
 
 
 # Singleton pipeline instance
