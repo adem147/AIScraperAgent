@@ -10,11 +10,7 @@ from .feasibility_analyser import FeasibilityAnalyser
 from .nvidia_client import get_nvidia_client
 
 from database.storage import initialize_database, save_procurement_notice
-
-try:
-    from qdrant_embedding import embed_and_store_ami_descriptions
-except Exception:
-    embed_and_store_ami_descriptions = None
+from qdrant_embedding import store_ami_embedding
 
 
 class ProcurementIntelligencePipeline:

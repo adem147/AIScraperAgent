@@ -3,6 +3,7 @@ const opportunityCount = document.querySelector('#opportunity-count');
 const sourceCount = document.querySelector('#source-count');
 const results = document.querySelector('#results');
 const resultCount = document.querySelector('#result-count');
+const pagination = document.querySelector('#pagination');
 const query = document.querySelector('#query');
 const sourceFilter = document.querySelector('#source-filter');
 const deadlineFilter = document.querySelector('#deadline-filter');
@@ -17,6 +18,9 @@ const smtpPasswordHelp = document.querySelector('#smtp-password-help');
 const settingsDialog = document.querySelector('#settings-dialog');
 const settingsOpen = document.querySelector('#settings-open');
 const settingsClose = document.querySelector('#settings-close');
+const pageSize = 10;
+let currentItems = [];
+let currentPage = 1;
 
 function updatePasswordHelp() {
   const help = {
@@ -70,8 +74,42 @@ async function fetchWithTimeout(url, options = {}, timeout = 5000) {
   }
 }
 
-function render(items) {
-  resultCount.textContent = `${items.length} result${items.length === 1 ? '' : 's'}`;
+function renderPagination() {
+  const pageCount = Math.ceil(currentItems.length / pageSize);
+  pagination.innerHTML = '';
+
+  const previous = document.createElement('button');
+  previous.type = 'button';
+  previous.textContent = 'Previous';
+  previous.disabled = currentPage === 1;
+  previous.addEventListener('click', () => {
+    currentPage -= 1;
+    renderPage();
+  });
+
+  const pageLabel = document.createElement('span');
+  pageLabel.textContent = `Page ${currentPage} of ${pageCount}`;
+
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.textContent = 'Next';
+  next.disabled = currentPage === pageCount;
+  next.addEventListener('click', () => {
+    currentPage += 1;
+    renderPage();
+  });
+
+  pagination.append(previous, pageLabel, next);
+}
+
+function renderPage() {
+  const start = (currentPage - 1) * pageSize;
+  const pageItems = currentItems.slice(start, start + pageSize);
+  renderItems(pageItems);
+  renderPagination();
+}
+
+function renderItems(items) {
   if (!items.length) {
     results.innerHTML = '<p class="empty">No opportunities match this search.</p>';
     return;
@@ -94,6 +132,18 @@ function render(items) {
   document.querySelectorAll('.delete-button').forEach(button => {
     button.addEventListener('click', () => deleteOpportunity(button.dataset.id));
   });
+}
+
+function render(items) {
+  currentItems = items;
+  currentPage = 1;
+  resultCount.textContent = `${items.length} result${items.length === 1 ? '' : 's'}`;
+  if (!items.length) {
+    results.innerHTML = '<p class="empty">No opportunities match this search.</p>';
+    renderPagination();
+    return;
+  }
+  renderPage();
 }
 
 async function deleteOpportunity(id) {
@@ -126,6 +176,7 @@ async function loadSources() {
 
 async function search() {
   results.innerHTML = '<p class="empty">Searching...</p>';
+  pagination.innerHTML = '';
   if (relevantView.classList.contains('active')) {
     const response = await fetch(`/api/search?query=${encodeURIComponent(query.value)}`);
     if (!response.ok) throw new Error('Qdrant search unavailable');

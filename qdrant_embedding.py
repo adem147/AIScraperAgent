@@ -48,46 +48,71 @@ def ensure_collection(collection_name: str = None):
             print("Failed to create collection:", e)
             return False
 
+def check_duplicates(embedding, client):
+    THRESH_HOLD  = 0.9
 
-def embed_and_store_ami_descriptions(opportunities: list[Opportunity]):
-   
+    result = client.search(
+    collection_name=get_collection_name(),
+    query_vector= embedding,
+    limit=1
+    )
+
+    if result and result[0].score >= THRESH_HOLD:
+        return False
+    return True
+
+
+
+def get_unique_opportunity_embeddings(opportunities: list[Opportunity]):
+    """Return embeddings whose opportunities are not semantic duplicates in Qdrant."""
     collection_name = get_collection_name()
 
     client = CLIENT
     if client is None:
-        return False
+        return []
 
     embed_model = get_model()
     
     if not ensure_collection(collection_name):
-        return False
+        return []
 
-    points = []
+    unique_embeddings = []
     for el in opportunities:
         try : 
             print(f"Embedding and storing description for opportunity: {el.title[:30]}...")
-            embedding_text = el.title + " " + el.description
+            embedding_text = f"{el.title} {el.description}"
             embedding = embed_model.encode(
                 embedding_text,
                 normalize_embeddings=True
             ).tolist()
-            points.append(
-                models.PointStruct(
-                    id=el.id,
-                    vector=embedding,
-                    payload={
-                        "hash_id": el.hash_id,
-                        "title": el.title,
-                        "description": embedding_text,
-                        "source_id": el.source_id,
-                    },
-                )
-            )
+
+            if(check_duplicates(embedding,client) is not True):
+                print("duplicate found : ",el.title)
+                continue
+
+            unique_embeddings.append((el, embedding))
         except Exception as e:
             print(f"Failed to embed and store description for opportunity: {el.title[:30]}... ({e})")
             continue
 
-    client.upsert(collection_name=collection_name, points=points)
+    return unique_embeddings
+
+
+def store_ami_embedding(opportunity, embedding):
+    """Store one database-backed opportunity embedding in Qdrant."""
+    if CLIENT is None:
+        return False
+    CLIENT.upsert(
+        collection_name=get_collection_name(),
+        points=[models.PointStruct(
+            id=opportunity.id,
+            vector=embedding,
+            payload={
+                "title": opportunity.title,
+                "source_id": opportunity.source_id,
+            },
+        )],
+    )
     return True
 
 
@@ -167,13 +192,13 @@ def retrive_spesific_data(collection_name: str = None):
                 similarity_score=float(r.score),
                 title=(r.payload or {}).get("title", ""),
             )
-            for r in results.points[:5]
+            for r in results.points
         ]
         save_similarity_results(similarity_results)
 
         print("======= Embedding results saved ! =======")
 
-        for r in results.points[:5]:
+        for r in results.points:
             print(r.payload.get("title",": "),f"{r.score:.2f}")   # your stored data
             print("-" *40)
 

@@ -8,12 +8,17 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from database.models import Opportunity, Source
+from scraper.hashing import generate_hash
 from database.storage import (count_opportunities, delete_opportunity as remove_opportunity,
-                               get_all_sources, get_opportunities_by_ids,
-                               initialize_database, insert_opportunities,
+                               get_all_sources,
+                               get_opportunities_by_ids,
+                               initialize_database,
+                               insert_opportunity, parse_datetime,
                                search_opportunities as find_opportunities)
 from qdrant_connection import get_collection_name, get_qdrant_client
-from qdrant_embedding import embed_and_store_ami_descriptions, retrive_spesific_data, search_qdrant_opportunities
+from qdrant_embedding import (store_ami_embedding,
+                               get_unique_opportunity_embeddings,
+                               retrive_spesific_data, search_qdrant_opportunities)
 from sc2 import get_filtred_df_dynamic
 from static_sc import get_filtred_df_static
 from notification import SMTPSettings, SMTP_PROVIDERS, get_smtp_settings, save_smtp_settings, send_new_opportunities_email
@@ -50,6 +55,28 @@ def opportunity_to_dict(opportunity: Opportunity, source: Source | None = None, 
         "submission_deadline": opportunity.submission_deadline.isoformat() if opportunity.submission_deadline else None,
         "score": round(score, 3),
     }
+
+
+def create_opportunities(source, dataframe):
+    """Build opportunities in memory before embedding and persistence."""
+    opportunities = []
+    for item in dataframe.to_dict(orient="records"):
+        submission_deadline = parse_datetime(item.get("submission_deadline"))
+        opportunities.append(Opportunity(
+            source_id=source.id,
+            title=item.get("title", ""),
+            description=item.get("description", ""),
+            url=item.get("url", ""),
+            published_date=parse_datetime(item.get("published_date")),
+            submission_deadline=submission_deadline,
+            sector=item.get("sector", ""),
+            hash_id=generate_hash(
+                item.get("title", ""),
+                submission_deadline.isoformat() if submission_deadline else "",
+                item.get("description", ""),
+            ),
+        ))
+    return opportunities
 
 
 @app.get("/", include_in_schema=False)
@@ -109,7 +136,7 @@ def search_qdrant(query: str = Query(default="", max_length=500)):
 
     qdrant_map = {r["id"]: r["score"] for r in qdrant_results}
 
-    ids = [int(result.get("id")) for result in qdrant_results if result.get("id") is not None]
+    ids = [int(result["id"]) for result in qdrant_results if result.get("id") is not None]
 
     db_query_results = get_opportunities_by_ids(ids)
 
@@ -160,10 +187,12 @@ def scrape():
         for source in get_all_sources():
             dataframe = (get_filtred_df_static(source) if source.scrape_type == "static"
                          else get_filtred_df_dynamic(source))
-            opportunities = insert_opportunities(source, dataframe)
-            embed_and_store_ami_descriptions(opportunities)
-            stored_count += len(opportunities)
-            send_new_opportunities_email(opportunities)
+            opportunities = create_opportunities(source, dataframe)
+            for opportunity, embedding in get_unique_opportunity_embeddings(opportunities):
+                saved_opportunity = insert_opportunity(opportunity)
+                store_ami_embedding(saved_opportunity, embedding)
+                stored_count += 1
+                send_new_opportunities_email([saved_opportunity])
         return {"status": "success", "stored_count": stored_count}
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
@@ -184,10 +213,11 @@ def main():
         else:
             final_df = get_filtred_df_dynamic(source)
 
-        opportunities = insert_opportunities(source, final_df)
-        send_new_opportunities_email(opportunities)
-
-        embed_and_store_ami_descriptions(opportunities)
+        opportunities = create_opportunities(source, final_df)
+        for opportunity, embedding in get_unique_opportunity_embeddings(opportunities):
+            saved_opportunity = insert_opportunity(opportunity)
+            store_ami_embedding(saved_opportunity, embedding)
+            send_new_opportunities_email([saved_opportunity])
 
     retrive_spesific_data(get_collection_name())
 

@@ -53,6 +53,8 @@ datasets/
 # Keep sample data if needed
 !data/sample/
 
+.github/
+
 # =========================
 # Model files
 # =========================

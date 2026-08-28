@@ -4,61 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CERT Opportunity Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/frontend/style.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">C</span><span>CERT Monitor</span></div>
+    <a class="brand" href="/" aria-label="CERT Monitor home">CERT Monitor</a>
     <div class="topbar-actions">
-      <button id="settings-open" class="settings-link" type="button">Delivery settings</button>
       <span id="health" class="health"><i></i> Checking API</span>
+      <button id="settings-open" class="icon-button" type="button" aria-label="Open email settings" title="Email settings">&#9881;</button>
     </div>
   </header>
 
   <main>
     <section class="intro">
-      <p class="eyebrow">Procurement intelligence</p>
-      <h1>Find the opportunities<br><em>worth pursuing.</em></h1>
-      <p class="lead">Search your collected tenders, inspect their details, and refresh sources from one quiet workspace.</p>
-      <button id="scrape-button" class="button primary">Run scraper</button>
+      <div>
+        <p class="eyebrow">CERT / MONITOR</p>
+        <h1>Opportunities, <em>in view.</em></h1>
+      </div>
+      <button id="scrape-button" class="button primary">Run scraper <span aria-hidden="true">&#8599;</span></button>
       <p id="scrape-status" class="status" aria-live="polite"></p>
     </section>
 
     <section class="stats" aria-label="Overview">
-      <div><strong id="opportunity-count">--</strong><span>opportunities</span></div>
-      <div><strong id="source-count">--</strong><span>sources</span></div>
-      <div><strong>API</strong><span>FastAPI backend</span></div>
+      <div><span>Opportunities</span><strong id="opportunity-count">--</strong></div>
+      <div><span>Sources</span><strong id="source-count">--</strong></div>
     </section>
 
     <section class="workspace">
       <div class="section-heading">
-        <div><p class="eyebrow">Your collection</p><h2>Opportunities</h2></div>
+        <div><p class="eyebrow">COLLECTION</p><h2>Opportunities</h2></div>
         <span id="result-count" class="muted"></span>
       </div>
       <form id="search-form" class="search">
         <label class="sr-only" for="query">Search opportunities</label>
-        <input id="query" name="query" type="search" placeholder="Search by title, sector, or keyword...">
+        <span class="search-icon" aria-hidden="true">&#8981;</span>
+        <input id="query" name="query" type="search" placeholder="Search opportunities...">
         <label class="sr-only" for="source-filter">Filter by source</label>
         <select id="source-filter" name="source_id">
           <option value="">All sources</option>
         </select>
-        <button class="button dark" type="submit">Search</button>
+        <button class="button dark" type="submit">Search <span aria-hidden="true">&#8594;</span></button>
       </form>
       <div class="filter-controls">
         <label for="deadline-filter">Deadline date from</label>
         <input id="deadline-filter" name="deadline_after" type="date" aria-label="Deadline date filter" title="Show deadlines on or after">
         <div class="view-toggle" role="group" aria-label="Opportunity view">
-          <button id="all-view" class="view-toggle-button active" type="button">All scraped</button>
-          <button id="relevant-view" class="view-toggle-button" type="button">CERT relevant</button>
+          <button id="all-view" class="view-toggle-button active" type="button">All</button>
+          <button id="relevant-view" class="view-toggle-button" type="button">Relevant</button>
         </div>
       </div>
       <div id="results" class="results"><p class="empty">Loading opportunities...</p></div>
+      <nav id="pagination" class="pagination" aria-label="Opportunities pages"></nav>
     </section>
   </main>
   <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
     <div class="settings-dialog-header">
-      <div><p class="eyebrow">Delivery</p><h2 id="settings-title">Email settings</h2></div>
-      <button id="settings-close" class="settings-close" type="button" aria-label="Close email settings">&times;</button>
+      <div><p class="eyebrow">SETTINGS</p><h2 id="settings-title">Email delivery</h2></div>
+      <button id="settings-close" class="settings-close" type="button" aria-label="Close email settings">&#215;</button>
     </div>
     <form id="smtp-form" class="settings-form">
       <label>Sender Email<input id="smtp-sender" type="email" required></label>

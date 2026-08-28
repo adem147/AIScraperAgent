@@ -32,36 +32,18 @@ def parse_datetime(value):
     raise ValueError(f"Unsupported datetime value: {value!r}")
 
 
-def insert_opportunities(source, dataframe):
-    """Insert one scraper's filtered DataFrame as a separate batch."""
+def insert_opportunity(opportunity):
+    """Save one opportunity and return it with its database ID."""
     session: Session = SessionLocal()
-    opportunities = []
     try:
-        for item in dataframe.to_dict(orient="records"):
-            try:
-                published_date = parse_datetime(item.get("published_date"))
-                submission_deadline = parse_datetime(item.get("submission_deadline"))
-                opportunity = Opportunity(
-                    source_id=source.id,
-                    title=item.get("title", ""),
-                    description=item.get("description", ""),
-                    url=item.get("url", ""),
-                    published_date=published_date,
-                    submission_deadline=submission_deadline,
-                    sector=item.get("sector", ""),
-                    hash_id=generate_hash(
-                        item.get("title", ""),
-                        submission_deadline.isoformat() if submission_deadline else "",
-                        item.get("description", ""),
-                    ),
-                )
-                session.add(opportunity)
-                session.commit()
-                session.refresh(opportunity)
-                opportunities.append(opportunity)
-            except Exception:
-                session.rollback()
-        return opportunities
+        session.add(opportunity)
+        session.commit()
+        session.refresh(opportunity)
+        session.expunge(opportunity)
+        return opportunity
+    except Exception:
+        session.rollback()
+        raise
     finally:
         session.close()
 
@@ -110,6 +92,22 @@ def get_opportunities_by_ids(opportunity_ids):
             session.query(Opportunity, Source)
             .join(Source, Opportunity.source_id == Source.id)
             .filter(Opportunity.id.in_(opportunity_ids))
+            .all()
+        )
+    finally:
+        session.close()
+
+
+def get_opportunities_by_hash_ids(hash_ids):
+    """Retrieve opportunities and sources using their stable embedding hashes."""
+    if not hash_ids:
+        return []
+    session: Session = SessionLocal()
+    try:
+        return (
+            session.query(Opportunity, Source)
+            .join(Source, Opportunity.source_id == Source.id)
+            .filter(Opportunity.hash_id.in_(hash_ids))
             .all()
         )
     finally:
