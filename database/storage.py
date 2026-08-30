@@ -36,6 +36,12 @@ def insert_opportunity(opportunity):
     """Save one opportunity and return it with its database ID."""
     session: Session = SessionLocal()
     try:
+        if opportunity.hash_id:
+            existing = session.query(Opportunity).filter(Opportunity.hash_id == opportunity.hash_id).first()
+            if existing is not None:
+                session.expunge(existing)
+                return existing
+
         session.add(opportunity)
         session.commit()
         session.refresh(opportunity)
@@ -118,6 +124,11 @@ def save_opportunity(opportunity):
     """Persist an already-created opportunity and return its ID."""
     session: Session = SessionLocal()
     try:
+        if opportunity.hash_id:
+            existing = session.query(Opportunity).filter(Opportunity.hash_id == opportunity.hash_id).first()
+            if existing is not None:
+                return existing.id
+
         session.add(opportunity)
         session.commit()
         session.refresh(opportunity)

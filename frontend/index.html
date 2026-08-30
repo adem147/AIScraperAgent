@@ -30,6 +30,7 @@
 
     <section class="stats" aria-label="Overview">
       <div><span>Opportunities</span><strong id="opportunity-count">--</strong></div>
+      <div><span>Relevant</span><strong id="relevant-count">--</strong></div>
       <div><span>Sources</span><strong id="source-count">--</strong></div>
     </section>
 
@@ -69,7 +70,6 @@
       <label>Sender Email<input id="smtp-sender" type="email" required></label>
       <label>Receiver Email<input id="smtp-recipient" type="email" required></label>
       <label>SMTP Provider<select id="smtp-provider" required></select></label>
-      <label>Username<input id="smtp-username" type="text" required></label>
       <label>Password<input id="smtp-password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password"><small id="smtp-password-help">Use an app password for Gmail. Your password is stored in the local environment file and never displayed.</small></label>
       <div class="settings-actions"><button class="button dark" type="submit">Save email settings</button><span id="smtp-status" class="status" aria-live="polite"></span></div>
     </form>

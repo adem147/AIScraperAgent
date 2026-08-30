@@ -49,15 +49,16 @@ def ensure_collection(collection_name: str = None):
             return False
 
 def check_duplicates(embedding, client):
-    THRESH_HOLD  = 0.9
+    THRESH_HOLD = 0.9
 
-    result = client.search(
-    collection_name=get_collection_name(),
-    query_vector= embedding,
-    limit=1
+    result = client.query_points(
+        collection_name=get_collection_name(),
+        query=embedding,
+        limit=1,
+        with_payload=False,
     )
 
-    if result and result[0].score >= THRESH_HOLD:
+    if result and result.points and result.points[0].score >= THRESH_HOLD:
         return False
     return True
 

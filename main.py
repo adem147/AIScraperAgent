@@ -26,6 +26,7 @@ import json
 
 
 SOURCE = []
+RELEVANT_SCORE_THRESHOLD = 0.70
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 app = FastAPI(title="CERT Opportunity Monitor")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
@@ -97,7 +98,17 @@ def sources():
 
 @app.get("/api/stats")
 def stats():
-    return {"opportunities": count_opportunities(), "sources": len(get_all_sources())}
+    total_opportunities = count_opportunities()
+    relevant_opportunities = sum(
+        1
+        for result in search_qdrant_opportunities(limit=1000)
+        if float(result.get("score", 0.0)) >= RELEVANT_SCORE_THRESHOLD
+    )
+    return {
+        "opportunities": total_opportunities,
+        "relevant_opportunities": relevant_opportunities,
+        "sources": len(get_all_sources()),
+    }
 
 
 @app.get("/api/settings/smtp")
@@ -183,16 +194,31 @@ def delete_opportunity(opportunity_id: int):
 def scrape():
     create_database()
     stored_count = 0
+    new_opportunities = []
     try:
         for source in get_all_sources():
-            dataframe = (get_filtred_df_static(source) if source.scrape_type == "static"
-                         else get_filtred_df_dynamic(source))
-            opportunities = create_opportunities(source, dataframe)
-            for opportunity, embedding in get_unique_opportunity_embeddings(opportunities):
-                saved_opportunity = insert_opportunity(opportunity)
-                store_ami_embedding(saved_opportunity, embedding)
-                stored_count += 1
-                send_new_opportunities_email([saved_opportunity])
+            print("======== processing source : ", source.title, "=========")
+            try:
+                dataframe = (get_filtred_df_static(source) if source.scrape_type == "static"
+                             else get_filtred_df_dynamic(source))
+                opportunities = create_opportunities(source, dataframe)
+
+                for opportunity, embedding in get_unique_opportunity_embeddings(opportunities):
+                    try:
+                        saved_opportunity = insert_opportunity(opportunity)
+                        store_ami_embedding(saved_opportunity, embedding)
+                        stored_count += 1
+                        new_opportunities.append(saved_opportunity)
+                    except Exception as exc:
+                        print(f"Opportunity processing failed for source '{source.title}': {exc}")
+                        continue
+            except Exception as exc:
+                print(f"Source '{source.title}' failed and will be skipped: {exc}")
+                continue
+
+        if new_opportunities:
+            send_new_opportunities_email(new_opportunities)
+
         return {"status": "success", "stored_count": stored_count}
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
@@ -206,6 +232,7 @@ def main():
 
     client = get_qdrant_client()
 
+    new_opportunities = []
     for source in SOURCE:
         print(f"======= Processing source: {source.title} (ID: {source.id}) =======")
         if(source.scrape_type == "static"):
@@ -217,7 +244,10 @@ def main():
         for opportunity, embedding in get_unique_opportunity_embeddings(opportunities):
             saved_opportunity = insert_opportunity(opportunity)
             store_ami_embedding(saved_opportunity, embedding)
-            send_new_opportunities_email([saved_opportunity])
+            new_opportunities.append(saved_opportunity)
+
+    if new_opportunities:
+        send_new_opportunities_email(new_opportunities)
 
     retrive_spesific_data(get_collection_name())
 

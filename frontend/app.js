@@ -1,5 +1,6 @@
 const health = document.querySelector('#health');
 const opportunityCount = document.querySelector('#opportunity-count');
+const relevantCount = document.querySelector('#relevant-count');
 const sourceCount = document.querySelector('#source-count');
 const results = document.querySelector('#results');
 const resultCount = document.querySelector('#result-count');
@@ -41,7 +42,6 @@ async function loadSmtpSettings() {
   const settings = data.settings;
   document.querySelector('#smtp-sender').value = settings.sender || '';
   document.querySelector('#smtp-recipient').value = settings.recipient || '';
-  document.querySelector('#smtp-username').value = settings.username || '';
   smtpProvider.value = settings.provider || 'gmail';
   updatePasswordHelp();
 }
@@ -114,8 +114,15 @@ function renderItems(items) {
     results.innerHTML = '<p class="empty">No opportunities match this search.</p>';
     return;
   }
-  results.innerHTML = items.map(item => `
+  results.innerHTML = items.map(item => {
+    const relevanceScore = Number(item.score ?? 0);
+    const scoreMarkup = relevanceScore > 0 ? `
+      <span class="opportunity-score">${(relevanceScore * 100).toFixed(1)}% relevant</span>
+    ` : '';
+
+    return `
     <article class="opportunity">
+      ${scoreMarkup}
       <div class="opportunity-main">
         <div class="opportunity-meta"><span>${escapeHtml(item.sector || 'General')}</span></div>
         <p class="opportunity-deadline">Deadline date: <strong>${escapeHtml(formatDate(item.submission_deadline))}</strong></p>
@@ -127,7 +134,8 @@ function renderItems(items) {
         ${item.url ? `<a class="view-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">View opportunity &rarr;</a>` : ''}
         <button class="delete-button" data-id="${item.id}" type="button">Delete</button>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 
   document.querySelectorAll('.delete-button').forEach(button => {
     button.addEventListener('click', () => deleteOpportunity(button.dataset.id));
@@ -162,6 +170,7 @@ async function loadStats() {
   if (!response.ok) throw new Error('Stats unavailable');
   const data = await response.json();
   opportunityCount.textContent = data.opportunities;
+  relevantCount.textContent = data.relevant_opportunities ?? 0;
   sourceCount.textContent = data.sources;
 }
 
@@ -261,7 +270,7 @@ smtpForm.addEventListener('submit', async event => {
     provider: smtpProvider.value,
     sender: document.querySelector('#smtp-sender').value,
     recipient: document.querySelector('#smtp-recipient').value,
-    username: document.querySelector('#smtp-username').value,
+    username: document.querySelector('#smtp-sender').value,
     password: document.querySelector('#smtp-password').value,
   };
   try {

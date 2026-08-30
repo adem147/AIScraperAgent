@@ -1,8 +1,12 @@
-from notification.notifications import _format_opportunities
-from notification.notifications import get_smtp_settings,send_new_opportunities_email
-
 import smtplib
+import uuid
+
 import pytest
+
+from database.models import Opportunity
+from database.storage import insert_opportunity
+from notification.notifications import _format_opportunities
+from notification.notifications import get_smtp_settings, send_new_opportunities_email
 
 
 class FakeOpportunity:
@@ -29,6 +33,33 @@ def test_format_opportunities():
     assert "Build AI system" in result
     assert "2026-09-01" in result
     assert "http://example.com" in result
+
+
+def test_insert_opportunity_skips_duplicate_hash_id():
+    duplicate_hash = f"dup-{uuid.uuid4().hex}"
+
+    first = Opportunity(
+        hash_id=duplicate_hash,
+        source_id=1,
+        title="Duplicate title",
+        description="Same description",
+        url="http://example.com/1",
+        sector="IT",
+    )
+    second = Opportunity(
+        hash_id=duplicate_hash,
+        source_id=1,
+        title="Different title",
+        description="Different description",
+        url="http://example.com/2",
+        sector="IT",
+    )
+
+    saved_first = insert_opportunity(first)
+    saved_second = insert_opportunity(second)
+
+    assert saved_first.id == saved_second.id
+    assert saved_second.hash_id == duplicate_hash
 
 
 def test_get_smtp_settings(monkeypatch):

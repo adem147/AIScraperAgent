@@ -19,15 +19,21 @@ SMTP_PROVIDERS = {
 ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
 
 
+def _default_username_from_sender(sender: str) -> str:
+    return sender.strip()
+
+
 def get_smtp_settings() -> dict[str, str | int | bool]:
     values = dotenv_values(ENV_FILE)
     password = os.getenv("SMTP_PASSWORD", values.get("SMTP_PASSWORD", ""))
     provider = os.getenv("SMTP_PROVIDER", values.get("SMTP_PROVIDER", "gmail"))
+    sender = os.getenv("SMTP_FROM", values.get("SMTP_FROM", ""))
+    username = os.getenv("SMTP_USERNAME", values.get("SMTP_USERNAME") or sender)
     return {
         "provider": provider,
-        "sender": os.getenv("SMTP_FROM", values.get("SMTP_FROM", "")),
+        "sender": sender,
         "recipient": os.getenv("OPPORTUNITIES_EMAIL_TO", values.get("OPPORTUNITIES_EMAIL_TO", "")),
-        "username": os.getenv("SMTP_USERNAME", values.get("SMTP_USERNAME", "")),
+        "username": username,
         "has_password": bool(password),
         "host": os.getenv("SMTP_HOST", values.get("SMTP_HOST", "")),
         "port": int(os.getenv("SMTP_PORT", values.get("SMTP_PORT", "465"))),
@@ -41,15 +47,17 @@ def save_smtp_settings(settings: dict[str, str | int | bool]) -> None:
     host = str(settings.get("host") or preset["host"])
     port = int(settings.get("port") or preset["port"])
     use_ssl = bool(settings.get("use_ssl", preset["use_ssl"]))
+    sender = str(settings["sender"]).strip()
+    username = str(settings.get("username") or sender or "").strip()
 
     values = {
         "SMTP_PROVIDER": provider,
         "SMTP_HOST": host,
         "SMTP_PORT": str(port),
         "SMTP_USE_SSL": str(use_ssl).lower(),
-        "SMTP_FROM": str(settings["sender"]),
+        "SMTP_FROM": sender,
         "OPPORTUNITIES_EMAIL_TO": str(settings["recipient"]),
-        "SMTP_USERNAME": str(settings["username"]),
+        "SMTP_USERNAME": username,
     }
     password = str(settings.get("password", ""))
     if password:
@@ -83,9 +91,12 @@ def send_new_opportunities_email(opportunities: Iterable[Opportunity]) -> int:
         }.items() if not value
     ]
     if missing:
-        raise RuntimeError(
-            "SMTP is not configured. Missing environment variable(s): " + ", ".join(missing)
+        print(
+            "SMTP is not configured. Missing environment variable(s): "
+            + ", ".join(missing)
+            + ". Skipping email delivery."
         )
+        return 0
 
     message = EmailMessage()
     message["Subject"] = f"{len(opportunities)} nouvelle(s) opportunité(s) CERT"
@@ -93,15 +104,19 @@ def send_new_opportunities_email(opportunities: Iterable[Opportunity]) -> int:
     message["To"] = recipient
     message.set_content(_format_opportunities(opportunities))
 
-    if use_ssl:
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ssl.create_default_context()) as smtp:
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(message)
-    else:
-        with smtplib.SMTP(smtp_host, smtp_port) as smtp:
-            smtp.starttls(context=ssl.create_default_context())
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(message)
+    try:
+        if use_ssl:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ssl.create_default_context()) as smtp:
+                smtp.login(smtp_user, smtp_password)
+                smtp.send_message(message)
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port) as smtp:
+                smtp.starttls(context=ssl.create_default_context())
+                smtp.login(smtp_user, smtp_password)
+                smtp.send_message(message)
+    except Exception as exc:
+        print(f"SMTP delivery failed: {exc}. Continuing without blocking the scraper.")
+        return 0
 
     return len(opportunities)
 

@@ -1,4 +1,6 @@
-from .nvidia_client import generate_json
+import json
+
+from .groq_client import ask_groq
 
 SYSTEM_PROMPT = """
 You are an information extraction system.
@@ -10,6 +12,13 @@ Rules:
 - Do not add explanations
 - If a field is missing, return null
 - Use ISO format for dates (YYYY-MM-DD)
+DO NOT:
+- add ```json
+- add ```
+- add explanations
+- add text before or after
+
+Output must start with { and end with }.
 
 TARGET SCHEMA:
 {
@@ -38,13 +47,5 @@ def extract_from_text(text, source_name=None, source_url=None, notice_id=None):
     if not text or not text.strip():
         raise ValueError("Input text cannot be empty.")
 
-    prompt = f"""
-    TEXT:
-    {text.strip()}
-    """
-    
-    return generate_json(
-        prompt=prompt,
-        system_prompt=SYSTEM_PROMPT,
-        max_tokens=1024,
-    )
+    prompt = text.strip()
+    return json.loads(ask_groq(prompt, SYSTEM_PROMPT))

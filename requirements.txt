@@ -16,3 +16,4 @@ pypdf
 docker
 pytest
 sendgrid
+groq
