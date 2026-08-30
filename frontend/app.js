@@ -20,6 +20,7 @@ const settingsDialog = document.querySelector('#settings-dialog');
 const settingsOpen = document.querySelector('#settings-open');
 const settingsClose = document.querySelector('#settings-close');
 const pageSize = 10;
+const relevantThreshold = 0.3;
 let currentItems = [];
 let currentPage = 1;
 
@@ -190,8 +191,12 @@ async function search() {
     const response = await fetch(`/api/search?query=${encodeURIComponent(query.value)}`);
     if (!response.ok) throw new Error('Qdrant search unavailable');
     const data = await response.json();
-    render(data.results.filter(item => (!sourceFilter.value || String(item.source_id) === sourceFilter.value)
-      && (!deadlineFilter.value || (item.submission_deadline && item.submission_deadline.slice(0, 10) >= deadlineFilter.value))));
+    render(data.results.filter(item => {
+      const score = Number(item.score ?? 0);
+      return score >= relevantThreshold
+        && (!sourceFilter.value || String(item.source_id) === sourceFilter.value)
+        && (!deadlineFilter.value || (item.submission_deadline && item.submission_deadline.slice(0, 10) >= deadlineFilter.value));
+    }));
     return;
   }
   const params = new URLSearchParams({ query: query.value });

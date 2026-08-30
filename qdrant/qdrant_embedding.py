@@ -5,7 +5,7 @@ from database.models import Opportunity
 from database.models import SimilarityResult
 from database.storage import save_similarity_results
 from scraper.embedding import get_model
-from qdrant_connection import get_collection_name, get_qdrant_client
+from qdrant.qdrant_connection import get_collection_name, get_qdrant_client
 from qdrant_client import models
 
 

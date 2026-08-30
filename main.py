@@ -15,10 +15,10 @@ from database.storage import (count_opportunities, delete_opportunity as remove_
                                initialize_database,
                                insert_opportunity, parse_datetime,
                                search_opportunities as find_opportunities)
-from qdrant_connection import get_collection_name, get_qdrant_client
-from qdrant_embedding import (store_ami_embedding,
-                               get_unique_opportunity_embeddings,
-                               retrive_spesific_data, search_qdrant_opportunities)
+from qdrant.qdrant_connection import get_collection_name, get_qdrant_client
+from qdrant.qdrant_embedding import (store_ami_embedding,
+                                     get_unique_opportunity_embeddings,
+                                     retrive_spesific_data, search_qdrant_opportunities)
 from sc2 import get_filtred_df_dynamic
 from static_sc import get_filtred_df_static
 from notification import SMTPSettings, SMTP_PROVIDERS, get_smtp_settings, save_smtp_settings, send_new_opportunities_email
@@ -26,7 +26,7 @@ import json
 
 
 SOURCE = []
-RELEVANT_SCORE_THRESHOLD = 0.70
+RELEVANT_SCORE_THRESHOLD = 0.3
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 app = FastAPI(title="CERT Opportunity Monitor")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
@@ -80,6 +80,31 @@ def create_opportunities(source, dataframe):
     return opportunities
 
 
+def get_relevant_new_opportunities(opportunities: list[Opportunity] | list[Any], threshold: float = RELEVANT_SCORE_THRESHOLD, limit: int = 10):
+    """Keep only newly detected opportunities that are relevant and rank them by Qdrant score."""
+    if not opportunities:
+        return []
+
+    opportunity_ids = {int(opportunity.id) for opportunity in opportunities if getattr(opportunity, "id", None) is not None}
+    if not opportunity_ids:
+        return []
+
+    qdrant_results = search_qdrant_opportunities(limit=100)
+    qdrant_scores = {
+        int(result["id"]): float(result.get("score", 0.0))
+        for result in qdrant_results
+        if result.get("id") is not None
+    }
+
+    ranked = [
+        opportunity for opportunity in opportunities
+        if getattr(opportunity, "id", None) is not None
+        and qdrant_scores.get(int(opportunity.id), 0.0) >= threshold
+    ]
+    ranked.sort(key=lambda opportunity: qdrant_scores.get(int(opportunity.id), 0.0), reverse=True)
+    return ranked[:limit]
+
+
 @app.get("/", include_in_schema=False)
 def frontend():
     return FileResponse(FRONTEND_DIR / "index.html")
@@ -101,7 +126,7 @@ def stats():
     total_opportunities = count_opportunities()
     relevant_opportunities = sum(
         1
-        for result in search_qdrant_opportunities(limit=1000)
+        for result in search_qdrant_opportunities(limit=100)
         if float(result.get("score", 0.0)) >= RELEVANT_SCORE_THRESHOLD
     )
     return {
@@ -217,7 +242,9 @@ def scrape():
                 continue
 
         if new_opportunities:
-            send_new_opportunities_email(new_opportunities)
+            relevant_batch = get_relevant_new_opportunities(new_opportunities)
+            if relevant_batch:
+                send_new_opportunities_email(relevant_batch)
 
         return {"status": "success", "stored_count": stored_count}
     except Exception as error:
@@ -247,7 +274,9 @@ def main():
             new_opportunities.append(saved_opportunity)
 
     if new_opportunities:
-        send_new_opportunities_email(new_opportunities)
+        relevant_batch = get_relevant_new_opportunities(new_opportunities)
+        if relevant_batch:
+            send_new_opportunities_email(relevant_batch)
 
     retrive_spesific_data(get_collection_name())
 

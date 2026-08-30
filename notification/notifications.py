@@ -9,6 +9,14 @@ from dotenv import dotenv_values, load_dotenv, set_key
 from database.models import Opportunity
 
 
+def _pretty_date(value):
+    if value is None:
+        return "Not specified"
+    if hasattr(value, "strftime"):
+        return value.strftime("%d/%m/%Y")
+    return str(value)
+
+
 load_dotenv()
 
 SMTP_PROVIDERS = {
@@ -99,10 +107,13 @@ def send_new_opportunities_email(opportunities: Iterable[Opportunity]) -> int:
         return 0
 
     message = EmailMessage()
-    message["Subject"] = f"{len(opportunities)} nouvelle(s) opportunité(s) CERT"
+    message["Subject"] = f"New CERT opportunities detected ({len(opportunities)})"
     message["From"] = sender
     message["To"] = recipient
-    message.set_content(_format_opportunities(opportunities))
+    plain_text = _format_opportunities(opportunities)
+    html_body = _format_opportunities_html(opportunities)
+    message.set_content(plain_text)
+    message.add_alternative(html_body, subtype="html")
 
     try:
         if use_ssl:
@@ -122,13 +133,72 @@ def send_new_opportunities_email(opportunities: Iterable[Opportunity]) -> int:
 
 
 def _format_opportunities(opportunities: Iterable[Opportunity]) -> str:
+    opportunities = list(opportunities)
+    if not opportunities:
+        return "No new opportunity detected."
+
     sections = []
     for index, opportunity in enumerate(opportunities, start=1):
-        deadline = opportunity.submission_deadline or "Non précisée"
+        deadline = _pretty_date(opportunity.submission_deadline)
+        title = opportunity.title or "Untitled opportunity"
+        description = opportunity.description or "No description available."
+        url = opportunity.url or "Not available"
+        source = opportunity.source_id or "Unknown source"
+
         sections.append(
-            f"{index}. {opportunity.title or 'Sans titre'}\n"
-            f"Description: {opportunity.description or 'Non disponible'}\n"
-            f"Date limite: {deadline}\n"
-            f"Lien: {opportunity.url or 'Non disponible'}"
+            f"{index}. {title}\n"
+            f"   Source: {source}\n"
+            f"   Description: {description}\n"
+            f"   Deadline: {deadline}\n"
+            f"   Link: {url}\n"
         )
-    return "Nouvelles opportunités détectées :\n\n" + "\n\n".join(sections)
+
+    header = (
+        "CERT Opportunity Monitor\n"
+        "========================\n"
+        f"{len(opportunities)} new opportunity(ies) detected\n\n"
+    )
+    return header + "\n".join(sections)
+
+
+def _format_opportunities_html(opportunities: Iterable[Opportunity]) -> str:
+    opportunities = list(opportunities)
+    if not opportunities:
+        return "<p>No new opportunity detected.</p>"
+
+    items = []
+    for index, opportunity in enumerate(opportunities, start=1):
+        deadline = _pretty_date(opportunity.submission_deadline)
+        title = opportunity.title or "Untitled opportunity"
+        description = opportunity.description or "No description available."
+        url = opportunity.url or "#"
+        source = opportunity.source_id or "Unknown source"
+        items.append(
+            f"""
+            <div style="margin-bottom: 20px; padding: 16px 18px; border: 1px solid #dfe7e2; border-radius: 8px; background: #f8faf8;">
+              <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #1f6f52; font-weight: 700; margin-bottom: 8px;">Opportunity {index}</div>
+              <div style="font-size: 22px; font-weight: 700; color: #1b2b28; margin-bottom: 8px;">{title}</div>
+              <div style="font-size: 13px; color: #4c5d59; margin-bottom: 6px;"><strong>Source:</strong> {source}</div>
+              <div style="font-size: 13px; color: #4c5d59; margin-bottom: 6px;"><strong>Deadline:</strong> {deadline}</div>
+              <div style="font-size: 13px; color: #4c5d59; line-height: 1.5; margin-bottom: 10px;">{description}</div>
+              <a href="{url}" style="display: inline-block; padding: 8px 12px; background: #176b4d; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: 700;">View opportunity</a>
+            </div>
+            """
+        )
+
+    return f"""
+    <html>
+      <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f3f5f1; color: #1b2b28;">
+        <div style="max-width: 700px; margin: 30px auto; background: #ffffff; border: 1px solid #e2e8e4; border-radius: 12px; overflow: hidden;">
+          <div style="background: #176b4d; color: #ffffff; padding: 20px 24px; font-size: 24px; font-weight: 700;">
+            CERT Opportunity Monitor
+          </div>
+          <div style="padding: 20px 24px 8px;">
+            <div style="font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #5d6a65; font-weight: 700; margin-bottom: 8px;">New opportunities</div>
+            <div style="font-size: 18px; font-weight: 600; color: #1b2b28; margin-bottom: 20px;">{len(opportunities)} new opportunity(ies) detected</div>
+            {''.join(items)}
+          </div>
+        </div>
+      </body>
+    </html>
+    """
