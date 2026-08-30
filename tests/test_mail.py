@@ -7,6 +7,7 @@ from database.models import Opportunity
 from database.storage import insert_opportunity
 from notification.notifications import _format_opportunities
 from notification.notifications import get_smtp_settings, send_new_opportunities_email
+from main import get_relevant_new_opportunities
 
 
 class FakeOpportunity:
@@ -127,3 +128,33 @@ def test_send_email(monkeypatch):
     assert "message" in captured
     assert captured["login"] == ("user", "pass")
     assert "Test Title" in captured["message"].get_content()
+
+
+def test_get_relevant_new_opportunities_keeps_top_relevant_and_limits_batch(monkeypatch):
+    class FakeOpp:
+        def __init__(self, opportunity_id, title):
+            self.id = opportunity_id
+            self.title = title
+
+    opportunities = [
+        FakeOpp(1, "Low relevance"),
+        FakeOpp(2, "Best match"),
+        FakeOpp(3, "Second best"),
+        FakeOpp(4, "Below threshold"),
+        FakeOpp(5, "Good but low"),
+    ]
+
+    monkeypatch.setattr(
+        "main.search_qdrant_opportunities",
+        lambda query="", limit=50: [
+            {"id": 2, "score": 0.95},
+            {"id": 3, "score": 0.90},
+            {"id": 5, "score": 0.75},
+            {"id": 4, "score": 0.40},
+            {"id": 1, "score": 0.10},
+        ],
+    )
+
+    relevant = get_relevant_new_opportunities(opportunities, threshold=0.5, limit=2)
+
+    assert [opportunity.id for opportunity in relevant] == [2, 3]

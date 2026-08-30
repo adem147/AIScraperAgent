@@ -11,7 +11,7 @@ except Exception:
     get_model = None
     cosine_similarity = None
 
-RELEVANCE_THRESHOLD = 0.70
+RELEVANCE_THRESHOLD = 0.55
 
 CERT_PROFILE_DESCRIPTION = (
     "Centre d'Études et de Recherche des Télécommunications (CERT) - Profile & Core Competencies:\n"
@@ -30,10 +30,10 @@ Your role is to strictly evaluate whether a public procurement notice / AMI matc
 Evaluation Rules:
 1. Provide a 'relevance_score' between 0.0 and 1.0.
    - 0.80 - 1.00: Perfect match (e.g. AI/ML, SOC/Cybersecurity, Telecom network audit, Software platform, Cloud infrastructure).
-   - 0.70 - 0.79: Strong match (e.g. IT modernization, digital health platform, data engineering, smart IoT systems).
-   - 0.40 - 0.69: Partial or adjacent IT opportunity (e.g. general IT procurement, office automation, basic hardware).
-   - 0.00 - 0.39: Irrelevant (e.g. Civil engineering, road construction, agriculture, water management, medical consumables, general logistics).
-2. 'is_relevant' MUST be true IF AND ONLY IF relevance_score >= 0.70.
+   - 0.55 - 0.79: Strong or likely relevant match (e.g. IT modernization, digital health platform, data engineering, smart IoT systems).
+   - 0.35 - 0.54: Partial or adjacent IT opportunity (e.g. general IT procurement, office automation, basic hardware).
+   - 0.00 - 0.34: Irrelevant (e.g. Civil engineering, road construction, agriculture, water management, medical consumables, general logistics).
+2. 'is_relevant' MUST be true IF AND ONLY IF relevance_score >= 0.55.
 3. Provide a concise 'rationale' (1-2 sentences in French or English) explaining why the opportunity matches or does not match CERT.
 
 Output strictly valid JSON conforming to:

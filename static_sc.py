@@ -68,8 +68,9 @@ def get_filtred_df_static(source):
 
     links = scrape_static_site(base_url)
 
-    print(f"Getting only the first 10 links ! from website : {source.title}")
-    links = links[:1]
+    n = 10
+    print(f"Getting only the first : "+ str(n) + " links from website : {source.title}")
+    links = links[:n]
     for link in links:
         text = extract_from_link(urljoin(striped_url, link))
         opp = extract_from_text(text)

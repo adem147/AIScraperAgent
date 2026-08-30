@@ -10,7 +10,7 @@ from .feasibility_analyser import FeasibilityAnalyser
 from .nvidia_client import get_nvidia_client
 
 from database.storage import initialize_database, save_procurement_notice
-from qdrant_embedding import store_ami_embedding
+from qdrant.qdrant_embedding import store_ami_embedding
 
 
 class ProcurementIntelligencePipeline:
