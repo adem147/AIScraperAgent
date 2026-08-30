@@ -8,7 +8,7 @@ load_dotenv()
 
 API_KEY = os.getenv("NVIDIA_API_KEY")
 BASE_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL = "meta/llama-3.1-8b-instruct"
+MODEL = "deepseek-ai/deepseek-v4-flash-0731"
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 

@@ -4,6 +4,7 @@ lxml
 python-dotenv
 playwright
 sentence-transformers
+onnxruntime
 scikit-learn
 pandas
 qdrant-client

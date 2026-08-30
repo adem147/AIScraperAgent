@@ -1,6 +1,6 @@
 import os
 os.environ["USE_TF"] = "0"
-os.environ["USE_TORCH"] = "1"
+os.environ["USE_TORCH"] = "0"
 
 from sklearn.metrics.pairwise import cosine_similarity
 
