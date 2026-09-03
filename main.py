@@ -4,12 +4,15 @@ from typing import Any
 from datetime import date
 
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from database.models import Opportunity, Source
 from scraper.hashing import generate_hash
 from database.storage import (count_opportunities, delete_opportunity as remove_opportunity,
+                               delete_opportunities, get_all_opportunity_ids,
+                               get_countries,
                                get_all_sources,
                                get_opportunities_by_ids,
                                initialize_database,
@@ -32,6 +35,16 @@ app = FastAPI(title="CERT Opportunity Monitor")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
 
+@app.on_event("startup")
+def startup_database():
+    create_database()
+
+
+class OpportunityDeleteRequest(BaseModel):
+    ids: list[int] = []
+    delete_all: bool = False
+
+
 with open("tests/test_data.json", "r", encoding="utf-8") as f:
     test_data = json.load(f)
 
@@ -48,6 +61,7 @@ def opportunity_to_dict(opportunity: Opportunity, source: Source | None = None, 
         "title": opportunity.title or "Untitled opportunity",
         "description": opportunity.description or "",
         "url": opportunity.url or "",
+        "country": opportunity.country or "",
         "sector": opportunity.sector or "",
         "source_id": source.id if source else opportunity.source_id,
         "source_title": source.title if source else "Unknown source",
@@ -68,6 +82,7 @@ def create_opportunities(source, dataframe):
             title=item.get("title", ""),
             description=item.get("description", ""),
             url=item.get("url", ""),
+            country=item.get("country", ""),
             published_date=parse_datetime(item.get("published_date")),
             submission_deadline=submission_deadline,
             sector=item.get("sector", ""),
@@ -121,12 +136,17 @@ def sources():
             for source in get_all_sources()]
 
 
+@app.get("/api/countries")
+def countries():
+    return get_countries()
+
+
 @app.get("/api/stats")
 def stats():
     total_opportunities = count_opportunities()
     relevant_opportunities = sum(
         1
-        for result in search_qdrant_opportunities(limit=100)
+        for result in search_qdrant_opportunities()
         if float(result.get("score", 0.0)) >= RELEVANT_SCORE_THRESHOLD
     )
     return {
@@ -158,9 +178,10 @@ def search_opportunities(
     query: str = Query(default="", max_length=200),
     source_id: int | None = Query(default=None),
     deadline_after: date | None = Query(default=None),
+    country: str | None = Query(default=None, max_length=100),
 ):
     results = [opportunity_to_dict(opportunity, source, score)
-               for opportunity, source, score in find_opportunities(query, source_id, deadline_after)]
+               for opportunity, source, score in find_opportunities(query, source_id, deadline_after, country)]
     return {"count": len(results), "results": results}
 
 
@@ -190,27 +211,44 @@ def search_qdrant(query: str = Query(default="", max_length=500)):
     return {"count": len(results), "results": results}
 
 
+def delete_qdrant_points(opportunity_ids):
+    qdrant_client = get_qdrant_client()
+    if qdrant_client is None:
+        raise RuntimeError("Qdrant is not connected")
+    from qdrant_client import models
+
+    qdrant_client.delete(
+        collection_name=get_collection_name(),
+        points_selector=models.PointIdsList(points=list(opportunity_ids)),
+    )
+
+
+def remove_opportunities(opportunity_ids):
+    delete_qdrant_points(opportunity_ids)
+    return delete_opportunities(opportunity_ids)
+
+
 @app.delete("/api/opportunities/{opportunity_id}")
 def delete_opportunity(opportunity_id: int):
     try:
-        if not remove_opportunity(opportunity_id):
+        if not get_opportunities_by_ids([opportunity_id]):
             raise HTTPException(status_code=404, detail="Opportunity not found")
-
-        qdrant_client = get_qdrant_client()
-        if qdrant_client is not None:
-            try:
-                from qdrant_client import models
-
-                qdrant_client.delete(
-                    collection_name=get_collection_name(),
-                    points_selector=models.PointIdsList(points=[opportunity_id]),
-                )
-            except Exception as error:
-                print(f"Qdrant deletion skipped: {error}")
-
-        return {"status": "deleted", "id": opportunity_id}
+        remove_opportunities([opportunity_id])
+        return {"status": "deleted", "ids": [opportunity_id]}
     except HTTPException:
         raise
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
+
+
+@app.delete("/api/opportunities")
+def delete_selected_opportunities(request: OpportunityDeleteRequest):
+    opportunity_ids = get_all_opportunity_ids() if request.delete_all else request.ids
+    if not opportunity_ids:
+        raise HTTPException(status_code=400, detail="Select at least one opportunity")
+    try:
+        deleted_count = remove_opportunities(opportunity_ids)
+        return {"status": "deleted", "count": deleted_count}
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
 
