@@ -29,7 +29,7 @@ import json
 
 
 SOURCE = []
-RELEVANT_SCORE_THRESHOLD = 0.3
+RELEVANT_SCORE_THRESHOLD = 0.2
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 app = FastAPI(title="CERT Opportunity Monitor")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")

@@ -7,7 +7,7 @@ from scraper.html_extractor import extract_from_link
 from LLM.nlp_extractor import extract_from_text
 
 
-NUMBER_OF_EXTRACTED_LINKS = 10
+NUMBER_OF_EXTRACTED_LINKS = 20
 
 def get_stripped_url(url):
     """Return the URL directory without query parameters or fragments."""
@@ -69,7 +69,7 @@ def get_filtred_df_static(source):
 
     links = scrape_static_site(base_url)
 
-    print(f"Getting only the first : "+ str(NUMBER_OF_EXTRACTED_LINKS) + " links from website : {source.title}")
+    print(f"Getting only the first : "+ str(NUMBER_OF_EXTRACTED_LINKS) + " links from website" + {source.title})
     links = links[:NUMBER_OF_EXTRACTED_LINKS]
     for link in links:
         text = extract_from_link(urljoin(striped_url, link))

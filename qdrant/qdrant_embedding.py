@@ -49,7 +49,7 @@ def ensure_collection(collection_name: str = None):
             return False
 
 def check_duplicates(embedding, client):
-    THRESH_HOLD = 0.9
+    THRESH_HOLD = 0.85
 
     result = client.query_points(
         collection_name=get_collection_name(),

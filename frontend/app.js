@@ -24,7 +24,7 @@ const deleteAllButton = document.querySelector('#delete-all-button');
 const settingsOpen = document.querySelector('#settings-open');
 const settingsClose = document.querySelector('#settings-close');
 const pageSize = 10;
-const relevantThreshold = 0.3;
+const relevantThreshold = 0.2;
 let currentItems = [];
 let currentPage = 1;
 
