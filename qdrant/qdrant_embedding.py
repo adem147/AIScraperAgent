@@ -127,7 +127,7 @@ CERT_RELEVANCE_QUERY = (
 )
 
 
-def search_qdrant_opportunities(query: str = "", limit: int = 50):
+def search_qdrant_opportunities(query: str = "", limit: int = 1000):
     """Return Qdrant-ranked opportunities for a query or the CERT relevance profile."""
     if CLIENT is None:
         return []

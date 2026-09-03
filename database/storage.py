@@ -160,7 +160,7 @@ def save_procurement_notice(notice):
     return save_opportunity(opportunity)
 
 
-def search_opportunities(query="", source_id=None, deadline_after=None):
+def search_opportunities(query="", source_id=None, deadline_after=None, country=None):
     """Find opportunities matching text, source, and an inclusive deadline date."""
     session: Session = SessionLocal()
     try:
@@ -174,6 +174,8 @@ def search_opportunities(query="", source_id=None, deadline_after=None):
             opportunity_query = opportunity_query.filter(
                 Opportunity.submission_deadline >= deadline_limit
             )
+        if country:
+            opportunity_query = opportunity_query.filter(Opportunity.country == country)
 
         terms = {term.lower() for term in query.split() if term.strip()}
         results = []
@@ -203,6 +205,47 @@ def delete_opportunity(opportunity_id):
         session.delete(opportunity)
         session.commit()
         return True
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def get_all_opportunity_ids():
+    session: Session = SessionLocal()
+    try:
+        return [opportunity_id for (opportunity_id,) in session.query(Opportunity.id).all()]
+    finally:
+        session.close()
+
+
+def get_countries():
+    session: Session = SessionLocal()
+    try:
+        return [country for (country,) in session.query(Opportunity.country).filter(
+            Opportunity.country.isnot(None), Opportunity.country != ""
+        ).distinct().order_by(Opportunity.country).all()]
+    finally:
+        session.close()
+
+
+def delete_opportunities(opportunity_ids):
+    """Delete multiple opportunities and their stored similarity results."""
+    opportunity_ids = list({int(opportunity_id) for opportunity_id in opportunity_ids})
+    if not opportunity_ids:
+        return 0
+
+    session: Session = SessionLocal()
+    try:
+        session.query(SimilarityResult).filter(
+            SimilarityResult.opportunity_id.in_(opportunity_ids)
+        ).delete(synchronize_session=False)
+        deleted_count = session.query(Opportunity).filter(
+            Opportunity.id.in_(opportunity_ids)
+        ).delete(synchronize_session=False)
+        session.commit()
+        return deleted_count
     except Exception:
         session.rollback()
         raise

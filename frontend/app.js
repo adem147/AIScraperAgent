@@ -7,6 +7,7 @@ const resultCount = document.querySelector('#result-count');
 const pagination = document.querySelector('#pagination');
 const query = document.querySelector('#query');
 const sourceFilter = document.querySelector('#source-filter');
+const countryFilter = document.querySelector('#country-filter');
 const deadlineFilter = document.querySelector('#deadline-filter');
 const allView = document.querySelector('#all-view');
 const relevantView = document.querySelector('#relevant-view');
@@ -17,12 +18,23 @@ const smtpProvider = document.querySelector('#smtp-provider');
 const smtpStatus = document.querySelector('#smtp-status');
 const smtpPasswordHelp = document.querySelector('#smtp-password-help');
 const settingsDialog = document.querySelector('#settings-dialog');
+const selectAllButton = document.querySelector('#select-all-button');
+const deleteSelectedButton = document.querySelector('#delete-selected-button');
+const deleteAllButton = document.querySelector('#delete-all-button');
 const settingsOpen = document.querySelector('#settings-open');
 const settingsClose = document.querySelector('#settings-close');
 const pageSize = 10;
 const relevantThreshold = 0.3;
 let currentItems = [];
 let currentPage = 1;
+
+function selectedIds() {
+  return [...document.querySelectorAll('.opportunity-select:checked')].map(input => Number(input.value));
+}
+
+function updateBulkActions() {
+  deleteSelectedButton.disabled = selectedIds().length === 0;
+}
 
 function updatePasswordHelp() {
   const help = {
@@ -123,6 +135,7 @@ function renderItems(items) {
 
     return `
     <article class="opportunity">
+      <label class="select-opportunity"><input class="opportunity-select" type="checkbox" value="${item.id}" aria-label="Select ${escapeHtml(item.title)}"></label>
       ${scoreMarkup}
       <div class="opportunity-main">
         <div class="opportunity-meta"><span>${escapeHtml(item.sector || 'General')}</span></div>
@@ -141,6 +154,8 @@ function renderItems(items) {
   document.querySelectorAll('.delete-button').forEach(button => {
     button.addEventListener('click', () => deleteOpportunity(button.dataset.id));
   });
+  document.querySelectorAll('.opportunity-select').forEach(input => input.addEventListener('change', updateBulkActions));
+  updateBulkActions();
 }
 
 function render(items) {
@@ -166,6 +181,20 @@ async function deleteOpportunity(id) {
   await search();
 }
 
+async function deleteMany(ids, deleteAll = false) {
+  const message = deleteAll ? 'Delete every opportunity permanently?' : `Delete ${ids.length} selected opportunities permanently?`;
+  if (!window.confirm(message)) return;
+  const response = await fetch('/api/opportunities', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids, delete_all: deleteAll }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.detail || 'Delete failed');
+  await loadStats();
+  await search();
+}
+
 async function loadStats() {
   const response = await fetch('/api/stats');
   if (!response.ok) throw new Error('Stats unavailable');
@@ -184,6 +213,15 @@ async function loadSources() {
   ).join('');
 }
 
+async function loadCountries() {
+  const response = await fetch('/api/countries');
+  if (!response.ok) throw new Error('Countries unavailable');
+  const countries = await response.json();
+  countryFilter.innerHTML = '<option value="">All countries</option>' + countries.map(country =>
+    `<option value="${escapeHtml(country)}">${escapeHtml(country)}</option>`
+  ).join('');
+}
+
 async function search() {
   results.innerHTML = '<p class="empty">Searching...</p>';
   pagination.innerHTML = '';
@@ -195,12 +233,14 @@ async function search() {
       const score = Number(item.score ?? 0);
       return score >= relevantThreshold
         && (!sourceFilter.value || String(item.source_id) === sourceFilter.value)
+        && (!countryFilter.value || item.country === countryFilter.value)
         && (!deadlineFilter.value || (item.submission_deadline && item.submission_deadline.slice(0, 10) >= deadlineFilter.value));
     }));
     return;
   }
   const params = new URLSearchParams({ query: query.value });
   if (sourceFilter.value) params.set('source_id', sourceFilter.value);
+  if (countryFilter.value) params.set('country', countryFilter.value);
   if (deadlineFilter.value) params.set('deadline_after', deadlineFilter.value);
   const response = await fetch(`/api/opportunities?${params}`);
   if (!response.ok) throw new Error('Search unavailable');
@@ -215,6 +255,7 @@ async function initialize() {
     setApiStatus(true);
     await loadStats();
     await loadSources();
+    await loadCountries();
     await loadSmtpSettings();
     await search();
   } catch (error) {
@@ -229,6 +270,10 @@ document.querySelector('#search-form').addEventListener('submit', event => {
 });
 
 sourceFilter.addEventListener('change', () => {
+  search().catch(() => { results.innerHTML = '<p class="empty">Search failed. Try again.</p>'; });
+});
+
+countryFilter.addEventListener('change', () => {
   search().catch(() => { results.innerHTML = '<p class="empty">Search failed. Try again.</p>'; });
 });
 
@@ -267,6 +312,17 @@ settingsClose.addEventListener('click', closeSettings);
 settingsDialog.addEventListener('click', event => {
   if (event.target === settingsDialog) closeSettings();
 });
+
+selectAllButton.addEventListener('click', () => {
+  document.querySelectorAll('.opportunity-select').forEach(input => { input.checked = true; });
+  updateBulkActions();
+});
+deleteSelectedButton.addEventListener('click', () => deleteMany(selectedIds()).catch(error => {
+  results.innerHTML = `<p class="empty">${escapeHtml(error.message)}</p>`;
+}));
+deleteAllButton.addEventListener('click', () => deleteMany([], true).catch(error => {
+  results.innerHTML = `<p class="empty">${escapeHtml(error.message)}</p>`;
+}));
 
 smtpForm.addEventListener('submit', async event => {
   event.preventDefault();

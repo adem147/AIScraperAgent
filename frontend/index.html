@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/frontend/style.css">
+  <link rel="stylesheet" href="/frontend/style.css?v=2">
 </head>
 <body>
   <header class="topbar">
@@ -47,6 +47,10 @@
         <select id="source-filter" name="source_id">
           <option value="">All sources</option>
         </select>
+        <label class="sr-only" for="country-filter">Filter by country</label>
+        <select id="country-filter" name="country">
+          <option value="">All countries</option>
+        </select>
         <button class="button dark" type="submit">Search <span aria-hidden="true">&#8594;</span></button>
       </form>
       <div class="filter-controls">
@@ -56,6 +60,11 @@
           <button id="all-view" class="view-toggle-button active" type="button">All</button>
           <button id="relevant-view" class="view-toggle-button" type="button">Relevant</button>
         </div>
+      </div>
+      <div class="bulk-actions">
+        <button id="select-all-button" class="button light" type="button">Select visible</button>
+        <button id="delete-selected-button" class="button danger" type="button" disabled>Delete selected</button>
+        <button id="delete-all-button" class="button danger" type="button">Delete all</button>
       </div>
       <div id="results" class="results"><p class="empty">Loading opportunities...</p></div>
       <nav id="pagination" class="pagination" aria-label="Opportunities pages"></nav>

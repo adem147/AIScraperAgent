@@ -50,6 +50,7 @@ class Opportunity(Base):
     description = Column(String)
 
     url = Column(String)
+    country = Column(String)
 
     published_date = Column(DateTime,index=True)
 
